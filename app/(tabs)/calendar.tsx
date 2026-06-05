@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-export default function TasksScreen() {
+export default function CalendarScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Lista Zadań</Text>
-      <Text>Miejsce na liste apki ToDo4Sure!</Text>
+      <Text style={styles.title}>Kalendarz</Text>
+      <Text>Tu będzie podstawowy widok kalendarza</Text>
     </View>
   );
 }
