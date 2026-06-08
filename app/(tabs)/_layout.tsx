@@ -1,9 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Notifications from 'expo-notifications';
 import { Tabs } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Platform, Text } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import '../../global.css';
-import * as Notifications from 'expo-notifications'
 
 
 
@@ -23,9 +23,6 @@ export default function TabLayout() {
       }
     }
   })
-
-
-
   return (
     <Tabs
       screenOptions={{
@@ -77,3 +74,29 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+
+  //Obsługa błędów przy pomocy Expo Router ErrorBoundry - expo automatycznie tego komponentu,
+  //jeśli znajdzie błędy w obrębie pozostałych stron
+  export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Promise<void> }) {
+  return (
+    <View className="flex-1 justify-center items-center bg-slate-50 p-6">
+      <Text className="text-4xl mb-2">⚠️</Text>
+      
+      <Text className="text-xl font-bold text-slate-800 text-center mb-2">
+        Wystąpił nieoczekiwany błąd aplikacji
+      </Text>
+      
+      <Text className="text-sm text-slate-500 text-center mb-6">
+        {error.message || 'Interfejs graficzny uległ awarii z powodu nieoczekiwanego błędu renderowania.'}
+      </Text>
+      
+      <Pressable 
+        className="bg-sky-600 active:bg-sky-700 py-3 px-6 rounded-xl border border-sky-700 shadow-sm"
+        onPress={retry}
+      >
+        <Text className="text-white font-bold text-sm">Odśwież interfejs</Text>
+      </Pressable>
+    </View>
+  );
+  }
