@@ -1,10 +1,31 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, Text } from 'react-native';
 import '../../global.css';
+import * as Notifications from 'expo-notifications'
+
+
+
 
 export default function TabLayout() {
+  //prosimy o uprawnienia do aplikacji na samym poczatku uzycia
+  //dziala to jako efekt uboczny
+
+  useEffect(() =>{
+    const requestNotificationPerm = async() => {
+      //sprawdzamy aktualny status uprawnien 
+      const { status } = await Notifications.getPermissionsAsync();
+
+      //jesli uzytkownik jeszcze nie przyznal dostepu, musi go zaakceptowac
+      if (status != 'granted') {
+        await Notifications.requestPermissionsAsync();
+      }
+    }
+  })
+
+
+
   return (
     <Tabs
       screenOptions={{
