@@ -9,18 +9,17 @@ export const TaskService = {
   },
 
   // Tworzenie zadań
-  async createTask(title: string, description: string, project: string): Promise<Task> {
+  async createTask(title: string, description: string, project: string, dueDate: string): Promise<Task> {
     const newId = Date.now().toString();                         //jako id używamy daty
-    const today = new Date().toISOString().split('T')[0];        //today pobieramy za pomocą Date i formatujemy na odpowiedni format
 
     const taskToCreate: Task = {
       id: newId,
       title,
       description,
       project,
-      dueDate: today,
+      dueDate,
       isCompleted: 0,
-      imageUri: null
+      imageUri: ''
     };
 
     await TaskRepository.create(taskToCreate);

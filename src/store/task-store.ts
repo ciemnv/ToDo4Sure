@@ -1,7 +1,7 @@
 // src/store/taskStore.ts
 import { create } from 'zustand';
-import { Task } from '../types/task';
 import { TaskService } from '../services/task-service';
+import { Task } from '../types/task';
 
 
 //deklarujemy tutaj funkcje, z których TaskState może korzystać
@@ -9,7 +9,7 @@ import { TaskService } from '../services/task-service';
 interface TaskState {
   tasks: Task[];                //taski to tablica obiektów typu Task
   fetchTasks: () => Promise<void>;    //fetchujemy (pobieramy) dane z bazy
-  addTask: (title: string, description: string, project: string) => Promise<void>; //dodajemy nowe zadanie
+  addTask: (title: string, description: string, project: string, dueDate: string) => Promise<void>; //dodajemy nowe zadanie
   completeTask: (id: string, imageUri: string) => Promise<void>;  //oznaczamy task jako ukończony
   deleteTask: (id: string) => Promise<void>; //usuwamy task
 }
@@ -19,12 +19,7 @@ interface TaskState {
 //useTaskStore -- to jest Zustand Hook, czyli sposób korzystania ze store
 //create<TaskState> tworzy globalny store i generuje hook React, oraz łączy stan+funkcje
 export const useTaskStore = create<TaskState>((set) => ({
-
-    //stwórz globalny obiekt stanu, który ma dane i funkcje
   tasks: [],
-
-
-    //
   fetchTasks: async () => {
     try {
       const allTasks = await TaskService.getTasks();
@@ -34,14 +29,15 @@ export const useTaskStore = create<TaskState>((set) => ({
     }
   },
 
-  addTask: async (title, description, project) => {
+  addTask: async (title, description, project, dueDate) => {
     try {
       // Prosimy serwis o stworzenie zadania w bazie danych
-      const createdTask = await TaskService.createTask(title, description, project);
+      const createdTask = await TaskService.createTask(title, description, project, dueDate);
       // Dorzucamy to zadanie do pamięci RAM
       set((state) => ({ tasks: [...state.tasks, createdTask] }));
     } catch (error) {
       console.error('Store error podczas dodawania:', error);
+      throw error;
     }
   },
 

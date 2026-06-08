@@ -1,7 +1,7 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Platform, Text } from 'react-native';
 import '../../global.css';
 
 export default function TabLayout() {
@@ -9,8 +9,8 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: true,
-        tabBarActiveTintColor: '#0284c7', // Kolor dla aktywnych zakładek
-        tabBarInactiveTintColor: '#64748b', // Kolor dla nieaktywnych zakładek
+        tabBarActiveTintColor: '#0284c7', 
+        tabBarInactiveTintColor: '#64748b', 
         tabBarStyle: Platform.select({
           ios: { position: 'absolute' },
           default: {},
@@ -19,7 +19,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Zadania',
+          headerTitle: () => <Text className="text-xl font-bold text-slate-800">Zadania</Text>,
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color }} className="text-s font-medium">Zadania</Text>
+          ),
           tabBarIcon: ({ focused }) => (
             // Ikona do listy zadań z pakietu Ionicons https://ionic.io/ionicons
             <Ionicons name="list-outline" size={28} color={focused ? "#0284c7" : '#64748b'} />
@@ -29,9 +32,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="calendar"
         options={{
-          title: 'Kalendarz',
+          headerTitle: () => <Text className="text-xl font-bold text-slate-800">Kalendarz</Text>,
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color }} className="text-s font-medium">Kalendarz</Text>
+          ),
           tabBarIcon: ({ focused }) => (
-            // Ikona do kalendarza zadań z pakietu Ionicons
             <Ionicons name="calendar-number-outline" size={28} color={focused ? "#0284c7" : '#64748b'} />
           ),
         }}
@@ -39,9 +44,11 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Ustawienia',
+          headerTitle: () => <Text className="text-xl font-bold text-slate-800">Ustawienia</Text>,
+          tabBarLabel: ({ color }) => (
+            <Text style={{ color }} className="text-s font-medium">Ustawienia</Text>
+          ),
           tabBarIcon: ({ focused }) => (
-            // Ikona do ustawień
             <Ionicons name="settings-outline" size={28} color={focused ? "#0284c7" : '#64748b'} />
           ),
         }}

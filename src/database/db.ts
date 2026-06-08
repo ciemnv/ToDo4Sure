@@ -4,11 +4,21 @@ import * as SQLite from 'expo-sqlite';
 
 //DB.TS to warstwa infrastruktury bazy danych
 
+
+// Tworzymy jedną, globalną referencję do bazy danych
+let dbInstance: SQLite.SQLiteDatabase | null = null;
+
 // Funkcja otwierająca bazę danych
 // Operacja asynchroniczna - otwarcie bazy danych nie następuje natychmiast
 // poczekaj aż baza zostanie otworzona a następnie przypisz
 export const getDBConnection = async () => {
-  return await SQLite.openDatabaseAsync('todo4sure.db');
+  // Jeśli połączenie już istnieje, nie otwieraj go na nowo – zwróć istniejące!
+  if (dbInstance) {
+    return dbInstance;
+  }
+  
+  dbInstance = await SQLite.openDatabaseAsync('todo4sure.db');
+  return dbInstance;
 };
 
 // Funkcja tworząca tabelę przy pierwszym uruchomieniu
