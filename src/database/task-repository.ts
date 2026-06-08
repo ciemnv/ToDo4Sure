@@ -26,10 +26,6 @@ export const TaskRepository = {
 
     const safeImageUri = imageUri ?? '';
 
-    // await db.runAsync(
-    //   'UPDATE tasks SET isCompleted = ?, imageUri = ? WHERE id = ?', 
-    //   [isCompleted, imageUri, id]
-    // );
     await db.runAsync(
       'UPDATE tasks SET isCompleted = ?, imageUri = ? WHERE id = ?', 
       [isCompleted, safeImageUri, id]

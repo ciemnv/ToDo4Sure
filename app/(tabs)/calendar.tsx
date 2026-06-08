@@ -74,8 +74,8 @@ export default function CalendarScreen() {
             arrowColor: '#0284c7',
             dotStyle: { width: 6, height: 6, borderRadius: 3, marginTop: 1 },
             textDayFontWeight: '500',
-              textMonthFontWeight: 'bold',
-              textDayHeaderFontWeight: 'bold',
+            textMonthFontWeight: 'bold',
+            textDayHeaderFontWeight: 'bold',
           }}
         />
       </View>
@@ -106,9 +106,9 @@ export default function CalendarScreen() {
                 {item.description ? (
                   <Text className="text-slate-500 text-sm mt-1">{item.description}</Text>
                 ) : null}
-                <Text className="text-xs text-sky-600 font-medium bg-sky-50 px-2 py-0.5 rounded self-start mt-2">
-                  {item.project}
-                </Text>
+              <Text className="text-xs text-sky-600 font-medium bg-sky-50 px-2 py-0.5 rounded self-start mt-2">
+                {item.project}
+              </Text>
               </View>
               <View>
                 {isDone ? (

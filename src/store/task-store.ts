@@ -27,22 +27,22 @@ export const useTaskStore = create<TaskState>((set) => ({
   error: null,
 
   fetchTasks: async () => {
-    set({ isLoading: true, error: null}) //ładowanie taska
+    set({ isLoading: true, error: null})
     try {
       const allTasks = await TaskService.getTasks();
-      set({ tasks: allTasks, isLoading: false });
+      set({ tasks: allTasks, isLoading: false, error: null });
     } catch (error) {
       set({error: 'Store error podczas pobierania:', isLoading: false });
     }
   },
 
   addTask: async (title, description, project, dueDate) => {
-  set({ isLoading: true, error: null}) //ładowanie taska
+  set({ isLoading: true, error: null})
     try {
       // Prosimy serwis o stworzenie zadania w bazie danych
       const createdTask = await TaskService.createTask(title, description, project, dueDate);
       // Dorzucamy to zadanie do pamięci RAM
-      set((state) => ({ tasks: [...state.tasks, createdTask], isLoading: false }));
+      set((state) => ({ tasks: [...state.tasks, createdTask], isLoading: false, error: null }));
     } catch (error) {
       set({error: 'Store error podczas pobierania:', isLoading: false });
       throw error;
@@ -54,6 +54,7 @@ export const useTaskStore = create<TaskState>((set) => ({
       await TaskService.completeTask(id, imageUri);
       set((state) => ({
         tasks: state.tasks.map((t) => (t.id === id ? { ...t, isCompleted: 1, imageUri } : t)),
+        error: null,
       }));
     } catch (error) {
       console.error('Store error podczas kończenia:', error);
@@ -76,8 +77,8 @@ export const useTaskStore = create<TaskState>((set) => ({
       await TaskService.updateTask(id, title, description, project, dueDate);
       set((state) => ({
         tasks: state.tasks.map((t) =>
-        t.id === id ? { ...t, title, description, project, dueDate } : t
-      ),
+        t.id === id ? { ...t, title, description, project, dueDate } : t),
+        error: null,
       }));
     } catch (err) {
       console.error('Problem podczas edycji: ', err);
