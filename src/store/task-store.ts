@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { TaskService } from '../services/task-service';
 import { Task } from '../types/task';
+import { TaskRepository } from '../database/task-repository';
 
 
 //deklarujemy tutaj funkcje, z których TaskState może korzystać
@@ -15,6 +16,7 @@ interface TaskState {
   completeTask: (id: string, imageUri: string) => Promise<void>;  //oznaczamy task jako ukończony
   deleteTask: (id: string) => Promise<void>; //usuwamy task
   updateTask: (id: string, title: string, description: string, project: string, dueDate: string) => Promise<void>;
+  clearAllTasks: () => Promise<void>;
 }
 
 //Używamy tutaj Zustanda do centralnego magazynowania danych aplikacji ----- dostęp z każdego komponentu
@@ -66,6 +68,7 @@ export const useTaskStore = create<TaskState>((set) => ({
       await TaskService.deleteTask(id);
       set((state) => ({
         tasks: state.tasks.filter((t) => t.id !== id),
+        error: null,
       }));
     } catch (error) {
       console.error('Store error podczas usuwania:', error);
@@ -83,6 +86,17 @@ export const useTaskStore = create<TaskState>((set) => ({
     } catch (err) {
       console.error('Problem podczas edycji: ', err);
       throw err;
+    }
+  },
+
+  clearAllTasks: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      // Wywołujemy czyszczenie tabeli w repozytorium poprzez serwis
+      await TaskRepository.deleteAllTasks(); 
+      set({ tasks: [], isLoading: false, error: null });
+    } catch (error) {
+      set({ error: 'Nie udało się wyczyścić bazy danych.', isLoading: false });
     }
   },
 }));

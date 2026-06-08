@@ -43,5 +43,11 @@ export const TaskRepository = {
   async delete(id: string): Promise<void> {
     const db = await getDBConnection();
     await db.runAsync('DELETE FROM tasks WHERE id = ?', [id]);
+  },
+
+  //usuwanie wszystkich tasków z bazy danyhc
+  async deleteAllTasks(): Promise<void> {
+    const db = await getDBConnection();
+    await db.runAsync('DELETE FROM tasks');
   }
 };

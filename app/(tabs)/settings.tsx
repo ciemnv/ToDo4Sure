@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 
 export default function SettingsScreen() {
-  const { tasks, fetchTasks, deleteTask } = useTaskStore();
+  const { tasks, fetchTasks, clearAllTasks } = useTaskStore();
   
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.isCompleted === 1).length;
@@ -30,9 +30,7 @@ export default function SettingsScreen() {
           onPress: async () => {
             try {
               // Czyścimy bazę usuwając elementy ze store
-              for (const task of tasks) {
-                await deleteTask(task.id);
-              }
+              await clearAllTasks();
               Alert.alert('Sukces', 'Baza danych została wyczyszczona.');
             } catch (error) {
               Alert.alert('Błąd', 'Nie udało się zresetować bazy.');
