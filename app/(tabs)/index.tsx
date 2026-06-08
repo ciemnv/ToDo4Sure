@@ -2,7 +2,7 @@ import { useTaskStore } from '@/src/store/task-store';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 
 const AVAILABLE_PROJECTS = ['Główne', 'Studia', 'Dom'];
@@ -23,10 +23,10 @@ export default function TasksScreen() {
 
   //stan edycji: formularz zamienia się w edytor, jeśli klikniemy edytuj
   //przechowujemy tutaj id zadania, które aktualnie edytujemy (jeśli mamy null, to dodajemy nowe)
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  // const [editingTaskId, setEditingTaskId] = useState<string | null>(null); 
 
   // Pobieramy stany globalne do listy zadań (wg zustanda) przez TaskStore
-  const { tasks, fetchTasks, addTask, deleteTask, completeTask } = useTaskStore();
+  const { tasks, fetchTasks, addTask, deleteTask, completeTask, isLoading, error } = useTaskStore();
 
   // Pobieramy zadania z bazy danych
   useEffect(() => {
@@ -204,11 +204,26 @@ export default function TasksScreen() {
 
 
 
-      {/* Część z dodawaniem listy zadań */}
+    {/* obsluga bledu user feedback pkt 7 */}
+      {error && (
+        <View className="bg-rose-50 p-4 rounded-xl border border-rose-200 mb-4">
+          <Text className="text-rose-700 font-medium text-sm mb-2">{error}</Text>
+          <Pressable className="bg-rose-600 p-2 rounded-lg items-center self-start px-4" onPress={fetchTasks}>
+            <Text className="text-white font-bold text-xs">Spróbuj ponownie</Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* wyświetlanie listy zadań */}
       <Text className="text-xl font-bold text-slate-800 mb-3">Twoje zadania: ({selectedFilter})</Text>
       
+      {/* obsługa ładowania */}
+      {isLoading ? (
+        <View className="flex-1 justify-center items-center py-10">
+          <ActivityIndicator size="large" color="#0284c7" />
+          <Text className="text-slate-400 text-sm mt-2 font-medium">Wczytywanie bazy danych SQLite...</Text>
+        </View>
+      ) :  (
       <FlatList
         data={filteredTasks}
         keyExtractor={(item) => item.id}
@@ -237,8 +252,6 @@ export default function TasksScreen() {
                 </View>
               </View>
               
-
-
               <View className="flex-row gap-2 items-center">
                 {/* Przycisk Zrobione - ukrywamy, jeśli już jest wykonane */}
                 {isDone ? (
@@ -269,6 +282,7 @@ export default function TasksScreen() {
           </View>
         }
       />
+      )}
     </View>
   );
 }

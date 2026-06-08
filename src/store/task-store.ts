@@ -8,6 +8,8 @@ import { Task } from '../types/task';
 //TaskSate wie o istnieniu tylko serwisu
 interface TaskState {
   tasks: Task[];                //taski to tablica obiektów typu Task
+  isLoading: boolean;           //stan ładowania
+  error: string | null;         //stan błędu
   fetchTasks: () => Promise<void>;    //fetchujemy (pobieramy) dane z bazy
   addTask: (title: string, description: string, project: string, dueDate: string) => Promise<void>; //dodajemy nowe zadanie
   completeTask: (id: string, imageUri: string) => Promise<void>;  //oznaczamy task jako ukończony
@@ -21,23 +23,28 @@ interface TaskState {
 //create<TaskState> tworzy globalny store i generuje hook React, oraz łączy stan+funkcje
 export const useTaskStore = create<TaskState>((set) => ({
   tasks: [],
+  isLoading: false,
+  error: null,
+
   fetchTasks: async () => {
+    set({ isLoading: true, error: null}) //ładowanie taska
     try {
       const allTasks = await TaskService.getTasks();
-      set({ tasks: allTasks });
+      set({ tasks: allTasks, isLoading: false });
     } catch (error) {
-      console.error('Store error podczas pobierania:', error);
+      set({error: 'Store error podczas pobierania:', isLoading: false });
     }
   },
 
   addTask: async (title, description, project, dueDate) => {
+  set({ isLoading: true, error: null}) //ładowanie taska
     try {
       // Prosimy serwis o stworzenie zadania w bazie danych
       const createdTask = await TaskService.createTask(title, description, project, dueDate);
       // Dorzucamy to zadanie do pamięci RAM
-      set((state) => ({ tasks: [...state.tasks, createdTask] }));
+      set((state) => ({ tasks: [...state.tasks, createdTask], isLoading: false }));
     } catch (error) {
-      console.error('Store error podczas dodawania:', error);
+      set({error: 'Store error podczas pobierania:', isLoading: false });
       throw error;
     }
   },
