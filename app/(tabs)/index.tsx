@@ -1,8 +1,10 @@
 import { useTaskStore } from '@/src/store/task-store';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
- 
+import { Alert, FlatList, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+
+const AVAILABLE_PROJECTS = ['Główne', 'Studia', 'Dom'];
 
 export default function TasksScreen() {
   // Stany lokalne komponentu do obsługi formularza dodawania tasków 
@@ -10,6 +12,8 @@ export default function TasksScreen() {
   const [description, setDescription] = useState('');
   const [project, setProject] = useState('Główne');
 
+  //stan dla filtrowania listy - domyslnie "wszystkie"
+  const [selectedFilter, setSelectedFilter] = useState('Wszystkie');
 
   // Stan dla daty i wyświetlania kalendarza
   const [date, setDate] = useState(new Date());
@@ -59,6 +63,11 @@ export default function TasksScreen() {
   }
 
 
+  //filtrowanie po kategoriach - filter wybiera tylko te, ktore pasuja do filtra
+  const filteredTasks = tasks.filter((task) => {
+    if (selectedFilter === 'Wszystkie') return true;
+    return task.project === selectedFilter; 
+  });
 
   return (
     <View className="flex-1 bg-slate-50 p-4">
@@ -85,6 +94,25 @@ export default function TasksScreen() {
           value={description}
           onChangeText={setDescription}
         />
+
+        {/* wybór projektu/kategorii */}
+        <Text className="text-sm font-semibold text-slate-600 mb-2">Projekt / Kategoria:</Text>
+        <View className="flex-row gap-2 mb-3">
+          {AVAILABLE_PROJECTS.map((p) => {
+            const isSelected = project === p;
+            return (
+              <Pressable
+                key={p}
+                onPress={() => setProject(p)}
+                className={`flex-1 p-2 rounded-lg items-center border ${isSelected ? 'bg-sky-50 border-sky-600' : 'bg-slate-50 border-slate-300'}`}
+              >
+                <Text className={`font-medium text-sm ${isSelected ? 'text-sky-600' : 'text-slate-600'}`}>
+                  {p}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         {/* Przycisk ustawiania daty */}
         <Pressable
@@ -116,17 +144,36 @@ export default function TasksScreen() {
         </Pressable>
       </View>
 
-
+      {/* tabsy do filtrowania po kategoriach/projektach */}
+      <View className="mb-4">
+        <Text className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Filtruj według projektu:</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
+          {['Wszystkie', ...AVAILABLE_PROJECTS].map((filter) => {
+            const isSelected = selectedFilter === filter;
+            return (
+              <Pressable
+                key={filter}
+                onPress={() => setSelectedFilter(filter)}
+                className={`px-4 py-2 rounded-full border mr-2 ${isSelected ? 'bg-slate-800 border-slate-800' : 'bg-white border-slate-200'}`}
+              >
+                <Text className={`font-semibold text-sm ${isSelected ? 'text-white' : 'text-slate-600'}`}>
+                  {filter}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
 
 
 
       {/* Część z dodawaniem listy zadań */}
 
       {/* wyświetlanie listy zadań */}
-      <Text className="text-xl font-bold text-slate-800 mb-3">Twoje zadania</Text>
+      <Text className="text-xl font-bold text-slate-800 mb-3">Twoje zadania: ({selectedFilter})</Text>
       
       <FlatList
-        data={tasks}
+        data={filteredTasks}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           const isDone = item.isCompleted === 1;
