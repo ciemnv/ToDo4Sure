@@ -7,6 +7,21 @@ export const TaskRepository = {
   // Pobieranie wszystkich zadań z bazy danych
   async getAllTasks(): Promise<Task[]> {
     const db = await getDBConnection();
+
+    // ZABEZPIECZENIE: Tworzymy tabelę zawsze przed próbą pobrania z niej danych.
+    // Jeśli tabela już istnieje, SQLite po prostu zignoruje to polecenie.
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id TEXT PRIMARY KEY NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT,
+        project TEXT,
+        dueDate TEXT,
+        isCompleted INTEGER DEFAULT 0,
+        imageUri TEXT
+      );
+    `);
+
     return await db.getAllAsync<Task>('SELECT * FROM tasks');
   },
 
