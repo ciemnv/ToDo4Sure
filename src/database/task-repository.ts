@@ -37,6 +37,12 @@ export const TaskRepository = {
 
   },
 
+  //edycja zadania w bazie
+  async updateTask(id: string, title: string, description: string, project: string, dueDate: string): Promise<void> {
+    const db = await getDBConnection();
+    await db.runAsync('UPDATE tasks SET title = ?, description = ?, project = ?, dueDate = ? WHERE id = ?',[title, description, project, dueDate, id]);
+  },
+
   // Usuwanie zadania z bazy
   async delete(id: string): Promise<void> {
     const db = await getDBConnection();

@@ -67,5 +67,10 @@ export const TaskService = {
   // Usuwanie zadania
   async deleteTask(id: string): Promise<void> {
     await TaskRepository.delete(id);
+  },
+
+  //edycja zadania
+  async updateTask(id: string, title: string, description: string, project: string, dueDate: string): Promise<void> {
+    await TaskRepository.updateTask(id, title, description, project, dueDate);
   }
 };

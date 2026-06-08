@@ -20,6 +20,11 @@ export default function TasksScreen() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+
+  //stan edycji: formularz zamienia się w edytor, jeśli klikniemy edytuj
+  //przechowujemy tutaj id zadania, które aktualnie edytujemy (jeśli mamy null, to dodajemy nowe)
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+
   // Pobieramy stany globalne do listy zadań (wg zustanda) przez TaskStore
   const { tasks, fetchTasks, addTask, deleteTask, completeTask } = useTaskStore();
 

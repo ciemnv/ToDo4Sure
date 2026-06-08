@@ -12,6 +12,7 @@ interface TaskState {
   addTask: (title: string, description: string, project: string, dueDate: string) => Promise<void>; //dodajemy nowe zadanie
   completeTask: (id: string, imageUri: string) => Promise<void>;  //oznaczamy task jako ukończony
   deleteTask: (id: string) => Promise<void>; //usuwamy task
+  updateTask: (id: string, title: string, description: string, project: string, dueDate: string) => Promise<void>;
 }
 
 //Używamy tutaj Zustanda do centralnego magazynowania danych aplikacji ----- dostęp z każdego komponentu
@@ -60,6 +61,20 @@ export const useTaskStore = create<TaskState>((set) => ({
       }));
     } catch (error) {
       console.error('Store error podczas usuwania:', error);
+    }
+  },
+
+  updateTask: async (id, title, description, project, dueDate) => {
+    try {
+      await TaskService.updateTask(id, title, description, project, dueDate);
+      set((state) => ({
+        tasks: state.tasks.map((t) =>
+        t.id === id ? { ...t, title, description, project, dueDate } : t
+      ),
+      }));
+    } catch (err) {
+      console.error('Problem podczas edycji: ', err);
+      throw err;
     }
   },
 }));
