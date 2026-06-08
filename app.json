@@ -32,7 +32,13 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+      "expo-camera",
+        {
+          "cameraPermission": "Aplikacja wymaga dostępu do aparatu, aby oznaczyć zdjęcie jako ukończone"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

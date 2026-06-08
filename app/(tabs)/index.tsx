@@ -1,7 +1,8 @@
 import { useTaskStore } from '@/src/store/task-store';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 
 const AVAILABLE_PROJECTS = ['Główne', 'Studia', 'Dom'];
@@ -51,8 +52,37 @@ export default function TasksScreen() {
       Alert.alert('Błąd bazy danych', 'Nie udało się zapisać zadania.');
       console.error(error);
     }
-  
   };
+
+  const handleCompleteTaskWithCamera = async (id: string) => {
+    //1. prosimy system o uprawnienia aparatu
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permission.granted === false) {
+      Alert.alert('Błąd', 'Musisz zezwolić aplikacji na dostęp do aparatu')
+      return;
+    }
+
+    //2. uruchamiamy systemowy aparat
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: false,
+      quality: 0.7, //żeby nie obciążać danymi
+    });
+
+    //3. dalsza obsługa (jeśli nie kliknął anuluj)
+    if(!result.canceled && result.assets && result.assets[0].uri) {
+      const permamentUri = result.assets[0].uri;
+      try {
+        //zapisujemy ścieżkę zdjęcia systemowego w bazie sqlite i zustand
+        await completeTask(id, permamentUri);
+      } catch (error) {
+        Alert.alert('Błąd', 'Nie udało się zaktualizować statusu zadania')
+      }
+    }
+
+
+  }
 
   //funkcja którą wywołujemy automatycznie przez komponent kalendarza, kiedy użytkownik klika w jakiś dzień
   const onDateChange = (event: any, selectedDate?: Date) => {
@@ -68,6 +98,8 @@ export default function TasksScreen() {
     if (selectedFilter === 'Wszystkie') return true;
     return task.project === selectedFilter; 
   });
+
+
 
   return (
     <View className="flex-1 bg-slate-50 p-4">
@@ -210,7 +242,7 @@ export default function TasksScreen() {
                   <Pressable 
                     className="bg-emerald-600 px-3 py-2 rounded-lg active:bg-emerald-700"
                     //na razie to tylko link do zdj
-                    onPress={() => completeTask(item.id, 'mock-image-path.jpg')}
+                    onPress={() => handleCompleteTaskWithCamera(item.id)}
                   >
                     <Text className="text-white font-medium text-sm">Zrobione</Text>
                   </Pressable>
