@@ -4,12 +4,14 @@ import { User } from '../types/user';
 
 //Operacje CRUD dla bazy danych
 export const TaskRepository = {
-  // Pobieranie wszystkich zadań z bazy danych
   async getAllTasks(currentUser: User): Promise<Task[]> {
     const db = await getDBConnection();
-    const rows = await db.getAllAsync<Task>('SELECT * FROM tasks WHERE userId = ?', [currentUser.id]);
+    
+    // BEZPIECZEŃSTWO: Jeśli id jest puste, podstawiamy bezpieczny identyfikator, chroniąc przed NullPointerException
+    const currentUserId = currentUser && currentUser.id ? currentUser.id : 'guest_local_device';
+    
+    const rows = await db.getAllAsync<any>('SELECT * FROM tasks WHERE userId = ?', [currentUserId]);
 
-    // Mapujemy płaski wiersz na pełną strukturę typu Task
     return rows.map(row => ({
       id: row.id,
       title: row.title,
@@ -18,17 +20,20 @@ export const TaskRepository = {
       dueDate: row.dueDate,
       isCompleted: row.isCompleted,
       imageUri: row.imageUri,
-      user: currentUser // Rekonstruujemy powiązanie całego obiektu użytkownika
+      user: currentUser
     }));
   },
 
   // Dodawaniae nowego zadania do bazy danych
   async create(task: Task): Promise<void> {
     const db = await getDBConnection();
+    
+    // ubezpieczenie przed brakiem ID użytkownika w locie asynchronicznym
+    const currentUserId = task.user && task.user.id ? task.user.id : 'guest_local_device';
 
     await db.runAsync(
       'INSERT INTO tasks (id, title, description, project, dueDate, isCompleted, imageUri, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [task.id, task.title, task.description, task.project, task.dueDate, task.isCompleted, task.imageUri, task.user.id]
+      [task.id, task.title, task.description, task.project, task.dueDate, task.isCompleted, task.imageUri, currentUserId]
     );
   },
 

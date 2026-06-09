@@ -30,9 +30,13 @@ export default function LoginScreen() {
     } catch (e) {}
   };
 
-  const handleGuestLogin = () => {
-    loginAsGuest();
-    router.replace('/(tabs)');
+  const handleGuestLogin = async () => {
+    try {
+      await loginAsGuest(); 
+      router.replace('/(tabs)');
+    } catch (e) {
+      Alert.alert('Błąd', 'Nie udało się uruchomić trybu gościa.');
+    }
   };
 
     return (

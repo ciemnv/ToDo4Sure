@@ -25,6 +25,7 @@ export const getDBConnection = async () => {
 //zwraca obietnicę bazy danych Promise
 export const initDatabase = async () => {
   const db = await getDBConnection();
+
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY NOT NULL,
@@ -34,7 +35,7 @@ export const initDatabase = async () => {
       dueDate TEXT,
       isCompleted INTEGER DEFAULT 0,
       imageUri TEXT,
-      userId TEXT NOT NULL -- <--- NOWOŚĆ: Każdy wiersz ma właściciela!
+      userId TEXT NOT NULL
     );
   `);
 };

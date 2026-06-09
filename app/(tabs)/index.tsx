@@ -27,7 +27,13 @@ export default function TasksScreen() {
     }
     const formattedDate = date.toISOString().split('T')[0];
     try {
-      await addTask(title, description, project, formattedDate);
+      // przekazujemy obiekt Payload
+      await addTask({
+        title: title.trim(),
+        description: description.trim(),
+        project: project,
+        dueDate: formattedDate
+      });
       setTitle('');
       setDescription('');
       setDate(new Date());

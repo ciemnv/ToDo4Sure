@@ -9,13 +9,13 @@ import { useAuthStore } from './auth-store';
 //deklarujemy tutaj funkcje, z których TaskState może korzystać
 //TaskSate wie o istnieniu tylko serwisu
 interface TaskState {
-  tasks: Task[];                //taski to tablica obiektów typu Task
-  isLoading: boolean;           //stan ładowania
-  error: string | null;         //stan błędu
-  fetchTasks: () => Promise<void>;    //fetchujemy (pobieramy) dane z bazy
-  addTask: (taskData: Omit<Task, 'id' | 'isCompleted' | 'imageUri' | 'user'>) => Promise<void>;
-  completeTask: (id: string, imageUri: string) => Promise<void>;  //oznaczamy task jako ukończony
-  deleteTask: (id: string) => Promise<void>; //usuwamy task
+  tasks: Task[];
+  isLoading: boolean;
+  error: string | null;
+  fetchTasks: () => Promise<void>;
+  addTask: (payload: NewTaskPayload) => Promise<void>;
+  completeTask: (id: string, imageUri: string) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
   updateTask: (id: string, title: string, description: string, project: string, dueDate: string) => Promise<void>;
   clearAllTasks: () => Promise<void>;
 }
@@ -30,8 +30,14 @@ export const useTaskStore = create<TaskState>((set) => ({
   error: null,
 
   fetchTasks: async () => {
-    set({ isLoading: true, error: null})
-    const currentUser = useAuthStore.getState().user;
+    set({ isLoading: true, error: null });
+    let currentUser = useAuthStore.getState().user;
+    
+    if (!currentUser) {
+      // Jeśli Zustand jeszcze nie wgrał profilu, próbujemy wymusić szybki odczyt sesji
+      await useAuthStore.getState().checkSession();
+      currentUser = useAuthStore.getState().user;
+    }
     
     if (!currentUser) {
       set({ error: 'Brak aktywnej sesji.', isLoading: false });
@@ -41,15 +47,15 @@ export const useTaskStore = create<TaskState>((set) => ({
     try {
       const allTasks = await TaskService.getTasks(currentUser);
       set({ tasks: allTasks, isLoading: false, error: null });
-    } catch (error) {
-      set({ error: 'Store error podczas pobierania:', isLoading: false });
+    } catch (error: any) {
+      set({ error: `Błąd bazy: ${error.message || error}`, isLoading: false });
     }
   },
 
-addTask: async (payload) => {
+  addTask: async (payload) => {
     set({ isLoading: true, error: null });
-    const currentUser = useAuthStore.getState().user;
-    
+    let currentUser = useAuthStore.getState().user;
+
     if (!currentUser) {
       set({ error: 'Brak zalogowanego użytkownika.', isLoading: false });
       return;
