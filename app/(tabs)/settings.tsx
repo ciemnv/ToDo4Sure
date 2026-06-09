@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 
 export default function SettingsScreen() {
   const { tasks, fetchTasks, clearAllTasks } = useTaskStore();
-  const { logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
   
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.isCompleted === 1).length;
@@ -53,9 +53,21 @@ export default function SettingsScreen() {
     }
   };
 
+
+  // Parsowanie nazwy użytkownika z obiektu User
+  const displayUsername = user?.email ? user.email.split('@')[0] : 'Użytkownik';
+
   return (
     <View className="flex-1 bg-slate-50 p-6">
       
+
+    {/* profil uzystkownika */}
+      <View className="bg-sky-600 p-4 rounded-xl mb-6 shadow-sm border border-sky-700">
+        <Text className="text-white text-xs font-bold uppercase tracking-widest opacity-80">Aktywna sesja</Text>
+        <Text className="text-white text-2xl font-black mt-1">Witaj, {displayUsername}</Text>
+        <Text className="text-sky-100 text-[11px] mt-0.5 font-medium">ID: {user?.id}</Text>
+      </View>
+
       <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Podsumowanie danych</Text>
       <View className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex-row justify-around">
         <View className="items-center">

@@ -4,8 +4,12 @@ import { Tabs } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import '../../global.css';
+import { useAuthStore } from '@/src/store/auth-store';
+
 
 export default function TabLayout() {
+  const { user } = useAuthStore(); // Pobieramy obiekt użytkownika
+
   useEffect(() => {
     const requestNotificationPerm = async () => {
       try {
@@ -21,6 +25,10 @@ export default function TabLayout() {
     requestNotificationPerm(); 
   }, []); 
 
+  // Bezpieczne parsowanie nazwy do powitania
+  const username = user?.email ? user.email.split('@')[0] : 'Użytkownik';
+  const welcomeMessage = `Witaj, ${username}`;
+
   return (
     <Tabs
       screenOptions={{
@@ -35,7 +43,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          headerTitle: 'Zadania', 
+          headerTitle: welcomeMessage, 
           tabBarLabel: 'Zadania',
           tabBarIcon: ({ focused }) => (
             <Ionicons name="list-outline" size={28} color={focused ? "#0284c7" : '#64748b'} />

@@ -5,18 +5,18 @@ import { Task } from '../types/task';
 //Operacja CRUD dla bazy danych
 export const TaskRepository = {
   // Pobieranie wszystkich zadań z bazy danych
-  async getAllTasks(): Promise<Task[]> {
+  async getAllTasks(userId: string): Promise<Task[]> {
     const db = await getDBConnection();
-    return await db.getAllAsync<Task>('SELECT * FROM tasks');
+    return await db.getAllAsync<Task>('SELECT * FROM tasks WHERE userId = ?', [userId]);
   },
 
   // Dodawaniae nowego zadania do bazy danych
-  async create(task: Task): Promise<void> {
+  async create(task: Task, userId: string ): Promise<void> {
     const db = await getDBConnection();
 
     await db.runAsync(
-      'INSERT INTO tasks (id, title, description, project, dueDate, isCompleted, imageUri) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [task.id, task.title, task.description, task.project, task.dueDate, task.isCompleted, task.imageUri]
+      'INSERT INTO tasks (id, title, description, project, dueDate, isCompleted, imageUri, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [task.id, task.title, task.description, task.project, task.dueDate, task.isCompleted, task.imageUri, userId]
     );
   },
 

@@ -6,12 +6,12 @@ import { Task } from '../types/task';
 
 export const TaskService = {
   // Pobieranie zadań z bazy danych
-  async getTasks(): Promise<Task[]> {
-    return await TaskRepository.getAllTasks();
+  async getTasks(userId: string): Promise<Task[]> {
+    return await TaskRepository.getAllTasks(userId);
   },
 
   // Tworzenie zadań
-  async createTask(title: string, description: string, project: string, dueDate: string): Promise<Task> {
+  async createTask(title: string, description: string, project: string, dueDate: string, userId: string): Promise<Task> {
     const newId = Date.now().toString();                         //jako id używamy daty
 
     const taskToCreate: Task = {
@@ -23,10 +23,10 @@ export const TaskService = {
       isCompleted: 0,
       imageUri: ''
     };
-    await TaskRepository.create(taskToCreate);            //zapis do bazy danych
+    await TaskRepository.create({ ...taskToCreate, userId });          //zapis do bazy danych
 
     //planowanie powiadomienia systemowego
-// 2. Próba zaplanowania powiadomienia (zabezpieczona)
+    // 2. Próba zaplanowania powiadomienia (zabezpieczona)
     try {
       const alarmDate = new Date(`${dueDate}T09:00:00`);
       const now = new Date();

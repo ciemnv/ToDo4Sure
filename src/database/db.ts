@@ -33,7 +33,8 @@ export const initDatabase = async () => {
       project TEXT,
       dueDate TEXT,
       isCompleted INTEGER DEFAULT 0,
-      imageUri TEXT
+      imageUri TEXT,
+      userId TEXT NOT NULL -- <--- NOWOŚĆ: Każdy wiersz ma właściciela!
     );
   `);
 };
