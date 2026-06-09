@@ -1,31 +1,41 @@
 import { getDBConnection } from '../database/db';
 import { Task } from '../types/task';
+import { User } from '../types/user';
 
-
-//Operacja CRUD dla bazy danych
+//Operacje CRUD dla bazy danych
 export const TaskRepository = {
   // Pobieranie wszystkich zadań z bazy danych
-  async getAllTasks(userId: string): Promise<Task[]> {
+  async getAllTasks(currentUser: User): Promise<Task[]> {
     const db = await getDBConnection();
-    return await db.getAllAsync<Task>('SELECT * FROM tasks WHERE userId = ?', [userId]);
+    const rows = await db.getAllAsync<Task>('SELECT * FROM tasks WHERE userId = ?', [currentUser.id]);
+
+    // Mapujemy płaski wiersz na pełną strukturę typu Task
+    return rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      project: row.project,
+      dueDate: row.dueDate,
+      isCompleted: row.isCompleted,
+      imageUri: row.imageUri,
+      user: currentUser // Rekonstruujemy powiązanie całego obiektu użytkownika
+    }));
   },
 
   // Dodawaniae nowego zadania do bazy danych
-  async create(task: Task, userId: string ): Promise<void> {
+  async create(task: Task): Promise<void> {
     const db = await getDBConnection();
 
     await db.runAsync(
       'INSERT INTO tasks (id, title, description, project, dueDate, isCompleted, imageUri, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [task.id, task.title, task.description, task.project, task.dueDate, task.isCompleted, task.imageUri, userId]
+      [task.id, task.title, task.description, task.project, task.dueDate, task.isCompleted, task.imageUri, task.user.id]
     );
   },
 
   // Aktualizacja statusu zadania i zdjęcia w bazie danych
   async updateStatus(id: string, isCompleted: number, imageUri: string | null): Promise<void> {
     const db = await getDBConnection();
-
     const safeImageUri = imageUri ?? '';
-
     await db.runAsync(
       'UPDATE tasks SET isCompleted = ?, imageUri = ? WHERE id = ?', 
       [isCompleted, safeImageUri, id]

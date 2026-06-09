@@ -1,3 +1,5 @@
+import { User } from "./user";
+
 // src/types/task.ts
 export interface Task {
   id: string;
@@ -7,4 +9,5 @@ export interface Task {
   dueDate: string;
   isCompleted: number; // 0 = fałsz, 1 = prawda
   imageUri: string | null;
+  user: User; 
 }

@@ -10,25 +10,23 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const { loginWithEmail, loginWithProvider, isLoading, error } = useAuthStore();
 
-const handleEmailLogin = async () => {
+  const handleEmailLogin = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert('Błąd', 'Wprowadź adres e-mail oraz hasło.');
       return;
     }
-    if (!email.includes('@')) {
-      Alert.alert('Błąd formatu', 'Wprowadź poprawny adres e-mail.');
-      return;
-    }
 
     try {
-      await loginWithEmail(email.trim(), password);
+      // przesyłamy obiekt UserDto
+      await loginWithEmail({ email: email.trim(), password: password });
       router.replace('/(tabs)');
     } catch (e) {}
   };
 
-  const handleProviderLogin = async (provider: 'google' | 'apple') => {
+  const handleProviderLogin = async (providerName: 'google' | 'apple') => {
     try {
-      await loginWithProvider(provider);
+      // przesyłamy obiekt UserDto dla logowania przez sociale
+      await loginWithProvider({ email: '', provider: providerName });
       router.replace('/(tabs)');
     } catch (e) {}
   };

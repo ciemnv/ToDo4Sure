@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { TaskService } from '../services/task-service';
 import { Task } from '../types/task';
 import { TaskRepository } from '../database/task-repository';
+import { useAuthStore } from './auth-store';
 
 
 //deklarujemy tutaj funkcje, z których TaskState może korzystać
@@ -12,7 +13,7 @@ interface TaskState {
   isLoading: boolean;           //stan ładowania
   error: string | null;         //stan błędu
   fetchTasks: () => Promise<void>;    //fetchujemy (pobieramy) dane z bazy
-  addTask: (title: string, description: string, project: string, dueDate: string) => Promise<void>; //dodajemy nowe zadanie
+  addTask: (taskData: Omit<Task, 'id' | 'isCompleted' | 'imageUri' | 'user'>) => Promise<void>;
   completeTask: (id: string, imageUri: string) => Promise<void>;  //oznaczamy task jako ukończony
   deleteTask: (id: string) => Promise<void>; //usuwamy task
   updateTask: (id: string, title: string, description: string, project: string, dueDate: string) => Promise<void>;
@@ -30,23 +31,35 @@ export const useTaskStore = create<TaskState>((set) => ({
 
   fetchTasks: async () => {
     set({ isLoading: true, error: null})
+    const currentUser = useAuthStore.getState().user;
+    
+    if (!currentUser) {
+      set({ error: 'Brak zalogowanego użytkownika.', isLoading: false });
+      return;
+    }
+
     try {
-      const allTasks = await TaskService.getTasks();
+      const allTasks = await TaskService.getTasks(currentUser);
       set({ tasks: allTasks, isLoading: false, error: null });
     } catch (error) {
-      set({error: 'Store error podczas pobierania:', isLoading: false });
+      set({ error: 'Store error podczas pobierania:', isLoading: false });
     }
   },
 
-  addTask: async (title, description, project, dueDate) => {
-  set({ isLoading: true, error: null})
+addTask: async (taskData) => {
+    set({ isLoading: true, error: null });
+    const currentUser = useAuthStore.getState().user;
+    
+    if (!currentUser) {
+      set({ error: 'Brak zalogowanego użytkownika.', isLoading: false });
+      return;
+    }
+
     try {
-      // Prosimy serwis o stworzenie zadania w bazie danych
-      const createdTask = await TaskService.createTask(title, description, project, dueDate);
-      // Dorzucamy to zadanie do pamięci RAM
+      const createdTask = await TaskService.createTask(taskData, currentUser);
       set((state) => ({ tasks: [...state.tasks, createdTask], isLoading: false, error: null }));
     } catch (error) {
-      set({error: 'Store error podczas pobierania:', isLoading: false });
+      set({ error: 'Store error podczas dodawania:', isLoading: false });
       throw error;
     }
   },

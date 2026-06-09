@@ -2,55 +2,55 @@
 import * as Notifications from "expo-notifications";
 import { TaskRepository } from '../database/task-repository';
 import { Task } from '../types/task';
+import { User } from "../types/user";
 
 
 export const TaskService = {
   // Pobieranie zadań z bazy danych
-  async getTasks(userId: string): Promise<Task[]> {
-    return await TaskRepository.getAllTasks(userId);
+  async getTasks(currentUser: User): Promise<Task[]> {
+    return await TaskRepository.getAllTasks(currentUser);
   },
 
   // Tworzenie zadań
-  async createTask(title: string, description: string, project: string, dueDate: string, userId: string): Promise<Task> {
+  // wykorzystujemy natywny typ Omit z TypeScripta
+  async createTask(taskData: Omit<Task, 'id' | 'isCompleted' | 'imageUri' | 'user'>, currentUser: User): Promise<Task> {
+    
     const newId = Date.now().toString();                         //jako id używamy daty
 
     const taskToCreate: Task = {
       id: newId,
-      title,
-      description,
-      project,
-      dueDate,
+      title: taskData.title,
+      description: taskData.description,
+      project: taskData.project,
+      dueDate: taskData.dueDate,
       isCompleted: 0,
-      imageUri: ''
+      imageUri: '',
+      user: currentUser
     };
-    await TaskRepository.create({ ...taskToCreate, userId });          //zapis do bazy danych
+    await TaskRepository.create(taskToCreate);          //zapis do bazy danych
 
-    //planowanie powiadomienia systemowego
-    // 2. Próba zaplanowania powiadomienia (zabezpieczona)
+    // Planowanie powiadomienia systemowego.
     try {
-      const alarmDate = new Date(`${dueDate}T09:00:00`);
+      const alarmDate = new Date(`${taskData.dueDate}T09:00:00`);
       const now = new Date();
       const finalDate = alarmDate > now ? alarmDate : new Date(now.getTime() + 10000);
 
-      // System spróbuje wywołać powiadomienie
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: `Powiadomienie: ${title}`,
-          body: description ? description : 'Pamiętaj o Twoim zadaniu na dziś!',
+          title: `Powiadomienie: ${taskData.title}`,
+          body: taskData.description ? taskData.description : 'Pamiętaj o Twoim zadaniu na dziś!',
           sound: true,
           data: { taskId: newId }
         },
         trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: finalDate,
-          } as Notifications.DateTriggerInput
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: finalDate,
+        } as Notifications.DateTriggerInput
       });
 
-      console.log(`Pomyślnie zaplanowano powiadomienie.`);
+      console.log('Pomyślnie zaplanowano powiadomienie.');
     } catch (error) {
-      // Jeśli Expo Go odrzuci operację, aplikacja nie crashuje, 
-      // tylko po cichu zapisuje informację w logach deweloperskich
-      console.log("Powiadomienia zablokowane przez środowisko Expo Go (SDK 53+).");
+      console.log('Powiadomienia zablokowane przez środowisko Expo Go (SDK 53+).');
     }
 
     return taskToCreate; // Zwracamy gotowy obiekt, żeby było wiadomo z czego ma skorzystać store

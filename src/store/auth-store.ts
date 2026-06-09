@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import { User } from '../types/user';
+import { User, UserDto } from '../types/user';
 
 interface AuthState {
   user: User | null;
@@ -8,8 +8,8 @@ interface AuthState {
   error: string | null;
   token: string | null;
   checkSession: () => Promise<void>;
-  loginWithEmail: (email: string, password: string) => Promise<void>;
-  loginWithProvider: (provider: 'google' | 'apple') => Promise<void>; // <--- DRUGA METODA
+  loginWithEmail: (dto: UserDto) => Promise<void>;
+  loginWithProvider: (dto: UserDto) => Promise<void>; // <--- DRUGA METODA
   logout: () => Promise<void>;
 }
 
@@ -36,37 +36,41 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-loginWithEmail: async (email: string, password: string) => {
+loginWithEmail: async (dto: UserDto) => {
     set({ isLoading: true, error: null });
     try {
       // Tutaj w prawdziwej aplikacji wywołujemy np. await supabase.auth.signInWithPassword
       // To zrobimy pozniej
       // Symulujemy bezpieczną odpowiedź serwisu uwierzytelniającego, generując token JWT:
-      if (password.length < 6) {
+      if (!dto.password || dto.password.length < 6) {
         throw new Error("Hasło musi mieć minimum 6 znaków.");
       }
       
       const mockToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." + Date.now();
-      const generatedUserId = "usr_" + btoa(email).substring(0, 10);
+      const generatedUserId = "usr_" + btoa(dto.email).substring(0, 10);
 
       // Zapisujemy bezpiecznie dane sesji w SecureStore urządzenia
       await SecureStore.setItemAsync('auth_token', mockToken);
-      await SecureStore.setItemAsync('user_email', email);
+      await SecureStore.setItemAsync('user_email', dto.email);
       await SecureStore.setItemAsync('user_id', generatedUserId);
 
-      set({ token: mockToken, user: { email, id: generatedUserId }, isLoading: false, error: null });
+      set({
+        user: { id: generatedUserId, email: dto.email, token: mockToken }, 
+        isLoading: false, 
+        error: null
+     });
     } catch (e: any) {
       set({ error: e.message || 'Błąd uwierzytelniania.', isLoading: false });
     }
   },
 
-  loginWithProvider: async (provider: 'google' | 'apple') => {
+  loginWithProvider: async (dto: UserDto) => {
     set({ isLoading: true, error: null });
     try {
       // Integracja z Expo AuthSession / Apple Authentication
-      const mockToken = `oauth_token_${provider}_` + Date.now();
-      const mockEmail = `${provider}_user@example.com`;
-      const mockId = `usr_${provider}_123`;
+      const mockToken = `oauth_token_${dto.provider}_` + Date.now();
+      const mockEmail = `${dto.provider}_user@example.com`;
+      const mockId = `usr_${dto.provider}_123`;
 
       await SecureStore.setItemAsync('auth_token', mockToken);
       await SecureStore.setItemAsync('user_email', mockEmail);
@@ -74,7 +78,7 @@ loginWithEmail: async (email: string, password: string) => {
 
       set({ token: mockToken, user: { email: mockEmail, id: mockId }, isLoading: false, error: null });
     } catch (e) {
-      set({ error: `Logowanie przez ${provider} nie powiodło się.`, isLoading: false });
+      set({ error: `Logowanie przez ${dto.provider} nie powiodło się.`, isLoading: false });
     }
   },
 
