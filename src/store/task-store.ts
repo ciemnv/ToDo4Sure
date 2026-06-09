@@ -1,7 +1,7 @@
 // src/store/taskStore.ts
 import { create } from 'zustand';
 import { TaskService } from '../services/task-service';
-import { Task } from '../types/task';
+import { Task, NewTaskPayload } from '../types/task';
 import { TaskRepository } from '../database/task-repository';
 import { useAuthStore } from './auth-store';
 
@@ -34,7 +34,7 @@ export const useTaskStore = create<TaskState>((set) => ({
     const currentUser = useAuthStore.getState().user;
     
     if (!currentUser) {
-      set({ error: 'Brak zalogowanego użytkownika.', isLoading: false });
+      set({ error: 'Brak aktywnej sesji.', isLoading: false });
       return;
     }
 
@@ -46,7 +46,7 @@ export const useTaskStore = create<TaskState>((set) => ({
     }
   },
 
-addTask: async (taskData) => {
+addTask: async (payload) => {
     set({ isLoading: true, error: null });
     const currentUser = useAuthStore.getState().user;
     
@@ -56,7 +56,7 @@ addTask: async (taskData) => {
     }
 
     try {
-      const createdTask = await TaskService.createTask(taskData, currentUser);
+      const createdTask = await TaskService.createTask(payload, currentUser);
       set((state) => ({ tasks: [...state.tasks, createdTask], isLoading: false, error: null }));
     } catch (error) {
       set({ error: 'Store error podczas dodawania:', isLoading: false });

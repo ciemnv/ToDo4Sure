@@ -1,6 +1,5 @@
 import { User } from "./user";
 
-// src/types/task.ts
 export interface Task {
   id: string;
   title: string;
@@ -10,4 +9,11 @@ export interface Task {
   isCompleted: number; // 0 = fałsz, 1 = prawda
   imageUri: string | null;
   user: User; 
+}
+
+export interface NewTaskPayload {
+  title: string;
+  description: string;
+  project: string;
+  dueDate: string;
 }

@@ -8,19 +8,18 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { loginWithEmail, loginWithProvider, isLoading, error } = useAuthStore();
+  const { loginWithEmail, loginWithProvider, loginAsGuest, isLoading, error } = useAuthStore();
 
   const handleEmailLogin = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert('Błąd', 'Wprowadź adres e-mail oraz hasło.');
       return;
     }
-
-    try {
-      // przesyłamy obiekt UserDto
-      await loginWithEmail({ email: email.trim(), password: password });
-      router.replace('/(tabs)');
-    } catch (e) {}
+      try {
+        // przesyłamy obiekt UserDto
+        await loginWithEmail({ email: email.trim(), password: password });
+        router.replace('/(tabs)');
+      } catch (e) {}
   };
 
   const handleProviderLogin = async (providerName: 'google' | 'apple') => {
@@ -29,6 +28,11 @@ export default function LoginScreen() {
       await loginWithProvider({ email: '', provider: providerName });
       router.replace('/(tabs)');
     } catch (e) {}
+  };
+
+  const handleGuestLogin = () => {
+    loginAsGuest();
+    router.replace('/(tabs)');
   };
 
     return (
@@ -86,6 +90,14 @@ export default function LoginScreen() {
           <Text className="text-white font-bold text-sm">Kontynuuj przez konto Google</Text>
         </Pressable>
       </View>
-    </View>
-  );
+
+        <Pressable 
+            className="bg-slate-100 p-3.5 rounded-xl items-center active:bg-slate-200 border border-slate-200 mt-4"
+            onPress={handleGuestLogin}
+            disabled={isLoading}
+          >
+            <Text className="text-slate-600 font-bold text-sm">Kontynuuj jako gość (Zapis lokalny)</Text>
+        </Pressable>
+      </View>
+    );
 }

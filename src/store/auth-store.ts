@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import { User, UserDto } from '../types/user';
+import { User, UserDto, GUEST_USER } from '../types/user';
 
 interface AuthState {
   user: User | null;
@@ -10,6 +10,7 @@ interface AuthState {
   checkSession: () => Promise<void>;
   loginWithEmail: (dto: UserDto) => Promise<void>;
   loginWithProvider: (dto: UserDto) => Promise<void>; // <--- DRUGA METODA
+  loginAsGuest: () => void;
   logout: () => Promise<void>;
 }
 
@@ -22,12 +23,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   checkSession: async () => {
     set({ isLoading: true });
     try {
+      const isGuestMode = await SecureStore.getItemAsync('guest_mode');
+      if (isGuestMode === 'true') {
+        set({ user: GUEST_USER, isLoading: false });
+        return;
+      }
+
       const savedToken = await SecureStore.getItemAsync('auth_token');
       const savedEmail = await SecureStore.getItemAsync('user_email');
       const savedId = await SecureStore.getItemAsync('user_id');
 
       if (savedToken && savedEmail && savedId) {
-        set({ token: savedToken, user: { email: savedEmail, id: savedId }, isLoading: false });
+        set({ token: savedToken, user: { email: savedEmail, id: savedId, isGuest: false }, isLoading: false });
       } else {
         set({ user: null, token: null, isLoading: false });
       }
@@ -55,7 +62,7 @@ loginWithEmail: async (dto: UserDto) => {
       await SecureStore.setItemAsync('user_id', generatedUserId);
 
       set({
-        user: { id: generatedUserId, email: dto.email, token: mockToken }, 
+        user: { id: generatedUserId, email: dto.email, token: mockToken, isGuest: false }, 
         isLoading: false, 
         error: null
      });
@@ -76,10 +83,15 @@ loginWithEmail: async (dto: UserDto) => {
       await SecureStore.setItemAsync('user_email', mockEmail);
       await SecureStore.setItemAsync('user_id', mockId);
 
-      set({ token: mockToken, user: { email: mockEmail, id: mockId }, isLoading: false, error: null });
+      set({ token: mockToken, user: { email: mockEmail, id: mockId, isGuest: false }, isLoading: false, error: null });
     } catch (e) {
       set({ error: `Logowanie przez ${dto.provider} nie powiodło się.`, isLoading: false });
     }
+  },
+
+  loginAsGuest: async () => {
+    await SecureStore.setItemAsync('guest_mode', 'true');
+    set({ user: GUEST_USER, error: null });
   },
 
   logout: async () => {
@@ -87,6 +99,7 @@ loginWithEmail: async (dto: UserDto) => {
       await SecureStore.deleteItemAsync('auth_token');
       await SecureStore.deleteItemAsync('user_email');
       await SecureStore.deleteItemAsync('user_id');
+      await SecureStore.deleteItemAsync('guest_mode');
       set({ user: null, token: null, error: null });
     } catch (e) {
       console.error('Błąd podczas wylogowywania:', e);

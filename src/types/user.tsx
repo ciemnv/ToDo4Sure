@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   token?: string;
+  isGuest: boolean;
 }
 
 
@@ -11,3 +12,9 @@ export interface UserDto {
   password?: string;
   provider?: 'google' | 'apple';
 }
+
+export const GUEST_USER: User = {
+  id: 'guest_local_device',
+  email: 'local_guest@todo4sure.local',
+  isGuest: true
+};
