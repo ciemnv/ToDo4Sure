@@ -53,8 +53,14 @@ export default function LoginScreen() {
       <View className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <Text className="text-3xl font-black text-slate-800 text-center mb-6">To-Do-4-Sure</Text>
 
+
+        {/* WYŚWIETLANIE INFO O BŁĘDZIE/SUKCESIE NA CZERWONO LUB ZIELONO */}
         {error ? (
-          <Text className="text-rose-600 text-xs font-bold text-center mb-4 bg-rose-50 p-2 rounded-lg border border-rose-100">{error}</Text>
+          <View className={`p-3 rounded-xl mb-4 border ${error.includes('pomyślnie') || error.includes('utworzone') ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+            <Text className={`text-xs font-bold text-center ${error.includes('pomyślnie') || error.includes('utworzone') ? 'text-emerald-700' : 'text-rose-600'}`}>
+              {error}
+            </Text>
+          </View>
         ) : null}
 
         <Text className="text-xs font-bold text-slate-500 uppercase mb-2">Adres E-mail:</Text>
@@ -95,9 +101,8 @@ export default function LoginScreen() {
           <Text className="text-slate-700 font-bold text-sm">Zarejestruj nowe konto</Text>
         </Pressable>
 
-        {/* LINIA ROZDZIELAJĄCA METODY LOGOWANIA */}
 
-          <Text className="text-[10px] text-slate-400 font-bold uppercase text-center px-3 my-10">Lub zaloguj przez</Text>
+        <Text className="text-[10px] text-slate-400 font-bold uppercase text-center px-3 my-10">Lub zaloguj przez</Text>
 
         {/* DRUGA METODA LOGOWANIA: INTEGRACJA z GOOGLE */}
         <Pressable 

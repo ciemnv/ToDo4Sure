@@ -59,6 +59,15 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
 
     if (error) {
+      //błędy które pojawiły się po drodze przy testowaniu - obsługuję je za pomocą customowych wiadomosci 
+      let customErrorMessage = error.message;
+      
+      if (error.message.toLowerCase().includes('invalid login credentials')) {
+        customErrorMessage = 'Podane konto nie istnieje lub wprowadziłeś niepoprawne hasło.';
+      } else if (error.message.toLowerCase().includes('rate limit')) {
+        customErrorMessage = 'Zbyt wiele prób logowania w krótkim czasie. Spróbuj ponownie za chwilę.';
+      }
+
       set({ error: error.message, isLoading: false });
       throw error;
     }
@@ -82,6 +91,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
 
     if (error) {
+      let customErrorMessage = error.message;
+      
+      if (error.message.toLowerCase().includes('rate limit')) {
+        customErrorMessage = 'Limit rejestracji wyczerpany';
+      } else if (error.message.toLowerCase().includes('user already registered')) {
+        customErrorMessage = 'Użytkownik o takim adresie e-mail jest już zarejestrowany.';
+      }
+
       set({ error: error.message, isLoading: false });
       throw error;
     }
