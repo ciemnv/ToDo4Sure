@@ -1,8 +1,8 @@
 // src/store/taskStore.ts
 import { create } from 'zustand';
-import { TaskService } from '../services/task-service';
-import { Task, NewTaskPayload } from '../types/task';
 import { TaskRepository } from '../database/task-repository';
+import { TaskService } from '../services/task-service';
+import { NewTaskPayload, Task } from '../types/task';
 import { useAuthStore } from './auth-store';
 
 

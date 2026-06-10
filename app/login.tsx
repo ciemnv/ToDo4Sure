@@ -6,9 +6,18 @@ import { useAuthStore } from '../src/store/auth-store';
 export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { loginWithEmail, loginWithProvider, loginAsGuest, isLoading, error } = useAuthStore();
+  const { loginWithEmail, signUpWithEmail, loginWithProvider, loginAsGuest, isLoading, error } = useAuthStore();
+
+  const handleRegister = async () => {
+  if (!email.trim() || !password.trim()) {
+    Alert.alert('Błąd', 'Wprowadź e-mail i hasło, aby utworzyć konto.');
+    return;
+  }
+  try {
+    await signUpWithEmail({ email: email.trim(), password: password });
+  } catch (e) {}
+};
 
   const handleEmailLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -78,6 +87,15 @@ export default function LoginScreen() {
           {isLoading ? <ActivityIndicator color="#fff" /> : <Text className="text-white font-bold text-base">Zaloguj się kontem e-mail</Text>}
         </Pressable>
 
+        {/* ZAREJESTRUJ SIĘ */}
+        <Pressable 
+          className="bg-slate-100 p-3 rounded-xl items-center active:bg-slate-200 border border-slate-300 mt-2"
+          onPress={handleRegister}
+          disabled={isLoading}
+        >
+          <Text className="text-slate-700 font-bold text-sm">Zarejestruj nowe konto</Text>
+        </Pressable>
+
         {/* LINIA ROZDZIELAJĄCA METODY LOGOWANIA */}
         <View className="flex-row items-center my-2 mb-4">
           <View className="flex-1 h-[1px] bg-slate-200" />
@@ -85,7 +103,7 @@ export default function LoginScreen() {
           <View className="flex-1 h-[1px] bg-slate-200" />
         </View>
 
-        {/* DRUGA METODA LOGOWANIA: INTEGRACJA OAUTH */}
+        {/* DRUGA METODA LOGOWANIA: INTEGRACJA z GOOGLE */}
         <Pressable 
           className="bg-slate-900 p-3.5 rounded-xl items-center active:bg-black"
           onPress={() => handleProviderLogin('google')}

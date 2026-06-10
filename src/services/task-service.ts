@@ -1,19 +1,59 @@
 // src/services/taskService.ts
+import NetInfo from '@react-native-community/netinfo';
 import * as Notifications from "expo-notifications";
 import { TaskRepository } from '../database/task-repository';
-import { Task } from '../types/task';
+import { NewTaskPayload, Task } from '../types/task';
 import { User } from "../types/user";
+import { supabase } from "./supabase";
 
 
 export const TaskService = {
   // Pobieranie zadań z bazy danych
+
+
+// Tryb Offline: Zawsze najpierw pobieramy dane z lokalnego SQLite cache
   async getTasks(currentUser: User): Promise<Task[]> {
-    return await TaskRepository.getAllTasks(currentUser);
+    const localTasks = await TaskRepository.getAllTasks(currentUser);
+    
+    const netState = await NetInfo.fetch();
+    // Jeśli mamy sieć i nie jesteśmy gościem, pobieramy najświeższe dane z chmury i aktualizujemy cache
+    if (netState.isConnected && !currentUser.isGuest) {
+      try {
+        const { data: cloudTasks, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('userId', currentUser.id);
+
+        if (!error && cloudTasks) {
+          // Synchronizacja: Nadpisujemy lokalny cache danymi z chmury
+          for (const cTask of cloudTasks) {
+            const exists = localTasks.find(t => t.id === cTask.id);
+            if (!exists) {
+              await TaskRepository.create({
+                id: cTask.id,
+                title: cTask.title,
+                description: cTask.description,
+                project: cTask.project,
+                dueDate: cTask.dueDate,
+                isCompleted: cTask.isCompleted ? 1 : 0,
+                imageUri: cTask.imageUri,
+                user: currentUser
+              });
+            }
+          }
+          return await TaskRepository.getAllTasks(currentUser);
+        }
+      } catch (e) {
+        console.log("Supabase nieosiągalne, działamy na danych z cache SQLite");
+      }
+    }
+
+    return localTasks;
   },
 
   // Tworzenie zadań
   // wykorzystujemy natywny typ Omit z TypeScripta
-  async createTask(taskData: Omit<Task, 'id' | 'isCompleted' | 'imageUri' | 'user'>, currentUser: User): Promise<Task> {
+  async createTask(taskData: NewTaskPayload, currentUser: User): Promise<Task> {
     
     const newId = Date.now().toString();                         //jako id używamy daty
 
@@ -27,9 +67,30 @@ export const TaskService = {
       imageUri: '',
       user: currentUser
     };
-    await TaskRepository.create(taskToCreate);          //zapis do bazy danych
+    await TaskRepository.create(taskToCreate);          //zapis do bazy danych SQLite
 
-    // Planowanie powiadomienia systemowego.
+
+    //jeśli mamy internet i użytkownik jest zalogowany, wysyłamy do Supabase
+    const netState = await NetInfo.fetch();
+    if (netState.isConnected && !currentUser.isGuest) {
+      try {
+        await supabase.from('tasks').insert([{
+          id: newId,
+          title: taskData.title,
+          description: taskData.description,
+          project: taskData.project,
+          dueDate: taskData.dueDate,
+          isCompleted: false,
+          userId: currentUser.id
+        }]);
+      } catch (e) {
+        console.log("Nie udało się zapisać w chmurze, dane zachowane w cache lokalnym.");
+      }
+    }
+
+
+
+    // Planowanie powiadomienia systemowego
     try {
       const alarmDate = new Date(`${taskData.dueDate}T09:00:00`);
       const now = new Date();
@@ -47,10 +108,9 @@ export const TaskService = {
           date: finalDate,
         } as Notifications.DateTriggerInput
       });
-
-      console.log('Pomyślnie zaplanowano powiadomienie.');
+      console.log('Zaplanowano powiadomienie.');
     } catch (error) {
-      console.log('Powiadomienia zablokowane przez środowisko Expo Go (SDK 53+).');
+      console.log('Powiadomienia wstrzymane');
     }
 
     return taskToCreate; // Zwracamy gotowy obiekt, żeby było wiadomo z czego ma skorzystać store
@@ -61,12 +121,27 @@ export const TaskService = {
     if (!imageUri) {
       throw new Error("Zrób zdjęcie jako dowód, żeby ukończyć zadanie!");
     }
+
+    //aktualizacja w pamieci telefonu (w bazie sqlite)
     await TaskRepository.updateStatus(id, 1, imageUri);
+
+    //aktualizacja w chmurze
+    const netState = await NetInfo.fetch();
+    if (netState.isConnected) {
+      await supabase.from('tasks').update({ isCompleted: true, imageUri }).eq('id', id);
+    }
   },
 
   // Usuwanie zadania
   async deleteTask(id: string): Promise<void> {
+    //usuwanie z bazy
     await TaskRepository.delete(id);
+
+    //usuwanie z chmury
+    const netState = await NetInfo.fetch();
+    if (netState.isConnected) {
+      await supabase.from('tasks').delete().eq('id', id);
+    }
   },
 
   //edycja zadania

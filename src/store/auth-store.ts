@@ -1,6 +1,7 @@
-import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import { User, UserDto, GUEST_USER } from '../types/user';
+import { create } from 'zustand';
+import { supabase } from '../services/supabase';
+import { GUEST_USER, User, UserDto } from '../types/user';
 
 interface AuthState {
   user: User | null;
@@ -9,7 +10,8 @@ interface AuthState {
   token: string | null;
   checkSession: () => Promise<void>;
   loginWithEmail: (dto: UserDto) => Promise<void>;
-  loginWithProvider: (dto: UserDto) => Promise<void>; // <--- DRUGA METODA
+  signUpWithEmail: (dto: UserDto) => Promise<void>;
+  loginWithProvider: (dto: UserDto) => Promise<void>; //logowanie z Google
   loginAsGuest: () => void;
   logout: () => Promise<void>;
 }
@@ -22,70 +24,87 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   checkSession: async () => {
     set({ isLoading: true });
-    try {
-      const isGuestMode = await SecureStore.getItemAsync('guest_mode');
-      if (isGuestMode === 'true') {
-        set({ user: GUEST_USER, isLoading: false });
-        return;
-      }
+    
+    const isGuestMode = await SecureStore.getItemAsync('guest_mode');
+    if (isGuestMode === 'true') {
+      set({ user: GUEST_USER, isLoading: false });
+      return;
+    }
 
-      const savedToken = await SecureStore.getItemAsync('auth_token');
-      const savedEmail = await SecureStore.getItemAsync('user_email');
-      const savedId = await SecureStore.getItemAsync('user_id');
-
-      if (savedToken && savedEmail && savedId) {
-        set({ token: savedToken, user: { email: savedEmail, id: savedId, isGuest: false }, isLoading: false });
-      } else {
-        set({ user: null, token: null, isLoading: false });
-      }
-    } catch (e) {
-      set({ user: null, token: null, isLoading: false });
+    // Odczytujemy natywną, bezpieczną sesję z Supabase (token JWT w SecureStore)
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session && session.user) {
+      set({ 
+        user: { 
+          id: session.user.id, 
+          email: session.user.email || '', 
+          token: session.access_token, 
+          isGuest: false 
+        }, 
+        isLoading: false 
+      });
+    } else {
+      set({ user: null, isLoading: false });
     }
   },
 
-loginWithEmail: async (dto: UserDto) => {
+  loginWithEmail: async (dto: UserDto) => {
+    if (!dto.password) return;
     set({ isLoading: true, error: null });
-    try {
-      // Tutaj w prawdziwej aplikacji wywołujemy np. await supabase.auth.signInWithPassword
-      // To zrobimy pozniej
-      // Symulujemy bezpieczną odpowiedź serwisu uwierzytelniającego, generując token JWT:
-      if (!dto.password || dto.password.length < 6) {
-        throw new Error("Hasło musi mieć minimum 6 znaków.");
-      }
-      
-      const mockToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." + Date.now();
-      const generatedUserId = "usr_" + btoa(dto.email).substring(0, 10);
 
-      // Zapisujemy bezpiecznie dane sesji w SecureStore urządzenia
-      await SecureStore.setItemAsync('auth_token', mockToken);
-      await SecureStore.setItemAsync('user_email', dto.email);
-      await SecureStore.setItemAsync('user_id', generatedUserId);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: dto.email,
+      password: dto.password,
+    });
 
+    if (error) {
+      set({ error: error.message, isLoading: false });
+      throw error;
+    }
+
+    if (data.session && data.user) {
+      await SecureStore.deleteItemAsync('guest_mode');
       set({
-        user: { id: generatedUserId, email: dto.email, token: mockToken, isGuest: false }, 
-        isLoading: false, 
-        error: null
-     });
-    } catch (e: any) {
-      set({ error: e.message || 'Błąd uwierzytelniania.', isLoading: false });
+        user: { id: data.user.id, email: data.user.email || '', token: data.session.access_token, isGuest: false },
+        isLoading: false
+      });
+    }
+  },
+
+  signUpWithEmail: async (dto: UserDto) => {
+    if (!dto.password) return;
+    set({ isLoading: true, error: null });
+
+    const { data, error } = await supabase.auth.signUp({
+      email: dto.email,
+      password: dto.password,
+    });
+
+    if (error) {
+      set({ error: error.message, isLoading: false });
+      throw error;
+    }
+
+    if (data.user) {
+      set({ error: 'Rejestracja pomyślna! Sprawdź skrzynkę e-mail, aby potwierdzić konto.', isLoading: false });
     }
   },
 
   loginWithProvider: async (dto: UserDto) => {
+    if (!dto.provider) return;
     set({ isLoading: true, error: null });
-    try {
-      // Integracja z Expo AuthSession / Apple Authentication
-      const mockToken = `oauth_token_${dto.provider}_` + Date.now();
-      const mockEmail = `${dto.provider}_user@example.com`;
-      const mockId = `usr_${dto.provider}_123`;
 
-      await SecureStore.setItemAsync('auth_token', mockToken);
-      await SecureStore.setItemAsync('user_email', mockEmail);
-      await SecureStore.setItemAsync('user_id', mockId);
+    // Protokół uwierzytelniania zewnętrznego OAuth (Google) za pomocą Supabase API
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: dto.provider,
+      options: {
+        redirectTo: 'todo4sure://', // Protokół Deep Linking Twojej aplikacji
+      }
+    });
 
-      set({ token: mockToken, user: { email: mockEmail, id: mockId, isGuest: false }, isLoading: false, error: null });
-    } catch (e) {
-      set({ error: `Logowanie przez ${dto.provider} nie powiodło się.`, isLoading: false });
+    if (error) {
+      set({ error: error.message, isLoading: false });
     }
   },
 
@@ -95,14 +114,8 @@ loginWithEmail: async (dto: UserDto) => {
   },
 
   logout: async () => {
-    try {
-      await SecureStore.deleteItemAsync('auth_token');
-      await SecureStore.deleteItemAsync('user_email');
-      await SecureStore.deleteItemAsync('user_id');
-      await SecureStore.deleteItemAsync('guest_mode');
-      set({ user: null, token: null, error: null });
-    } catch (e) {
-      console.error('Błąd podczas wylogowywania:', e);
-    }
+    await supabase.auth.signOut();
+    await SecureStore.deleteItemAsync('guest_mode');
+    set({ user: null, error: null });
   },
 }));
