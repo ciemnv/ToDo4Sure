@@ -60,15 +60,19 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     if (error) {
       //błędy które pojawiły się po drodze przy testowaniu - obsługuję je za pomocą customowych wiadomosci 
+      
+      // Zamieniamy nasze errory z supabase na małe litery, żeby ignorować wielkość liter i literówki
+      const rawError = error.message.toLowerCase();
       let customErrorMessage = error.message;
       
-      if (error.message.toLowerCase().includes('invalid login credentials')) {
+      // Łapiemy błąd niepoprawnych danych
+      if (rawError.includes('invalid') && rawError.includes('login')) {
         customErrorMessage = 'Podane konto nie istnieje lub wprowadziłeś niepoprawne hasło.';
-      } else if (error.message.toLowerCase().includes('rate limit')) {
-        customErrorMessage = 'Zbyt wiele prób logowania w krótkim czasie. Spróbuj ponownie za chwilę.';
+      } else if (rawError.includes('rate limit') || rawError.includes('too many requests')) {
+        customErrorMessage = 'Zbyt wiele prób logowania/rejestracji w krótkim czasie. Spróbuj ponownie za chwilę.';
       }
 
-      set({ error: error.message, isLoading: false });
+      set({ error: customErrorMessage, isLoading: false });
       throw error;
     }
 
@@ -91,20 +95,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
 
     if (error) {
+      const rawError = error.message.toLowerCase();
       let customErrorMessage = error.message;
       
-      if (error.message.toLowerCase().includes('rate limit')) {
-        customErrorMessage = 'Limit rejestracji wyczerpany';
-      } else if (error.message.toLowerCase().includes('user already registered')) {
+      if (rawError.includes('rate limit') || rawError.includes('too many requests')) {
+        customErrorMessage = 'Zbyt wiele żądań do bazy danych. Spróbuj ponownie za chwilę.';
+      } else if (rawError.includes('already registered') || rawError.includes('exists')) {
         customErrorMessage = 'Użytkownik o takim adresie e-mail jest już zarejestrowany.';
       }
 
-      set({ error: error.message, isLoading: false });
+      set({ error: customErrorMessage, isLoading: false });
       throw error;
     }
 
     if (data.user) {
-      set({ error: 'Rejestracja pomyślna! Sprawdź skrzynkę e-mail, aby potwierdzić konto.', isLoading: false });
+      set({ error: 'Rejestracja pomyślna! Zaloguj się, używając swojego loginu i hasla', isLoading: false });
     }
   },
 

@@ -55,13 +55,19 @@ export default function LoginScreen() {
 
 
         {/* WYŚWIETLANIE INFO O BŁĘDZIE/SUKCESIE NA CZERWONO LUB ZIELONO */}
-        {error ? (
-          <View className={`p-3 rounded-xl mb-4 border ${error.includes('pomyślnie') || error.includes('utworzone') ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
-            <Text className={`text-xs font-bold text-center ${error.includes('pomyślnie') || error.includes('utworzone') ? 'text-emerald-700' : 'text-rose-600'}`}>
-              {error}
-            </Text>
-          </View>
-        ) : null}
+        {error ? (() => {
+          // Konwertujemy komunikaty bledu do malych liter
+          const checkText = error.toLowerCase();
+          const isSuccess = checkText.includes('pomyślna') || checkText.includes('utworzone');
+
+          return (
+            <View className={`p-3 rounded-xl mb-4 border ${isSuccess ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+              <Text className={`text-xs font-bold text-center ${isSuccess ? 'text-emerald-700' : 'text-rose-600'}`}>
+                {error}
+              </Text>
+            </View>
+          );
+        })() : null}
 
         <Text className="text-xs font-bold text-slate-500 uppercase mb-2">Adres E-mail:</Text>
         <TextInput

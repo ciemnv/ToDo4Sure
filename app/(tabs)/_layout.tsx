@@ -25,7 +25,7 @@ export default function TabLayout() {
     requestNotificationPerm(); 
   }, []); 
 
-  // Bezpieczne parsowanie nazwy do powitania
+  // Nazwa do powitania - to początek emaila
   const username = user?.email ? user.email.split('@')[0] : 'Użytkownik';
   const welcomeMessage = `Witaj, ${username}`;
 
