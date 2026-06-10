@@ -51,8 +51,7 @@ export default function LoginScreen() {
     return (
     <View className="flex-1 bg-slate-50 justify-center p-6">
       <View className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-        <Text className="text-3xl font-black text-slate-800 text-center mb-1">To-Do-4-Sure</Text>
-        <Text className="text-xs font-semibold text-slate-400 uppercase tracking-widest text-center mb-6">Uwierzytelnianie bazy sesji</Text>
+        <Text className="text-3xl font-black text-slate-800 text-center mb-6">To-Do-4-Sure</Text>
 
         {error ? (
           <Text className="text-rose-600 text-xs font-bold text-center mb-4 bg-rose-50 p-2 rounded-lg border border-rose-100">{error}</Text>
@@ -80,7 +79,7 @@ export default function LoginScreen() {
         />
 
         <Pressable 
-          className="bg-sky-600 p-3.5 rounded-xl items-center active:bg-sky-700 mb-4"
+          className="bg-sky-600 p-3.5 rounded-xl items-center active:bg-sky-700"
           onPress={handleEmailLogin}
           disabled={isLoading}
         >
@@ -97,11 +96,8 @@ export default function LoginScreen() {
         </Pressable>
 
         {/* LINIA ROZDZIELAJĄCA METODY LOGOWANIA */}
-        <View className="flex-row items-center my-2 mb-4">
-          <View className="flex-1 h-[1px] bg-slate-200" />
-          <Text className="text-[10px] text-slate-400 font-bold uppercase px-3">Lub zaloguj przez</Text>
-          <View className="flex-1 h-[1px] bg-slate-200" />
-        </View>
+
+          <Text className="text-[10px] text-slate-400 font-bold uppercase text-center px-3 my-10">Lub zaloguj przez</Text>
 
         {/* DRUGA METODA LOGOWANIA: INTEGRACJA z GOOGLE */}
         <Pressable 
@@ -118,7 +114,7 @@ export default function LoginScreen() {
             onPress={handleGuestLogin}
             disabled={isLoading}
           >
-            <Text className="text-slate-600 font-bold text-sm">Kontynuuj jako gość (Zapis lokalny)</Text>
+            <Text className="text-slate-600 font-bold text-sm">Kontynuuj jako gość</Text>
         </Pressable>
       </View>
     );
