@@ -1,8 +1,9 @@
 // src/components/EditTaskModal.tsx
-import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TextInput, Pressable, Alert } from 'react-native';
-import { Task } from '@/src/types/task';
 import { useTaskStore } from '@/src/store/task-store';
+import { Task } from '@/src/types/task';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useEffect, useState } from 'react';
+import { Alert, Modal, Pressable, Text, TextInput, View } from 'react-native';
 
 interface EditTaskModalProps {
   isVisible: boolean;
@@ -10,11 +11,16 @@ interface EditTaskModalProps {
   task: Task | null;
 }
 
+const AVAILABLE_PROJECTS = ['Główne', 'Studia', 'Dom'];
+
+
 export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isVisible, onClose, task }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [project, setProject] = useState('Praca');
   const [dueDate, setDueDate] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Kiedy modal się otwiera i dostaje obiekt zadania, wypełniamy pola formularza
   useEffect(() => {
@@ -23,8 +29,17 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isVisible, onClose
       setDescription(task.description || '');
       setProject(task.project || 'Praca');
       setDueDate(task.dueDate);
+      // Konwertujemy string YYYY-MM-DD z bazy na obiekt Date dla komponentu
+      setDate(new Date(task.dueDate));
     }
   }, [task, isVisible]);
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false); // Ukrywamy selektor po wyborze
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  };
 
   const handleSave = async () => {
     if (!title.trim() || !task) {
@@ -32,9 +47,11 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isVisible, onClose
       return;
     }
 
+    const formattedDate = date.toISOString().split('T')[0];
+
     try {
       const { updateTask } = useTaskStore.getState();
-      await updateTask(task.id, title.trim(), description.trim(), project, dueDate);
+      await updateTask(task.id, title.trim(), description.trim(), project, formattedDate);
       onClose(); // Zamykamy modal po sukcesie
       Alert.alert('Sukces', 'Zadanie zostało zaktualizowane.');
     } catch (err) {
@@ -65,8 +82,46 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isVisible, onClose
             multiline
             numberOfLines={3}
           />
+          {/* Wybór kategorii*/}
+          <Text className="text-sm font-semibold text-slate-600 mb-2">Projekt / Kategoria:</Text>
+            <View className="flex-row gap-2 mb-3">
+            {AVAILABLE_PROJECTS.map((p) => {
+                const isSelected = project === p;
+                return (
+                <Pressable
+                    key={p}
+                    onPress={() => setProject(p)}
+                    className={isSelected ? "flex-1 p-2 rounded-lg items-center border bg-sky-50 border-sky-600" : "flex-1 p-2 rounded-lg items-center border bg-slate-50 border-slate-300"}
+                >
+                    <Text className={isSelected ? "font-medium text-sm text-sky-600" : "font-medium text-sm text-slate-600"}>{p}</Text>
+                </Pressable>
+                );
+            })}
+            </View>
 
-          <View className="flex-row justify-between gap-3 mt-4">
+          {/* Wybór daty wewnątrz modalu */}
+          <Text className="text-xs font-semibold text-slate-500 mb-1 ml-1">Termin wykonania</Text>
+          <Pressable
+            className="bg-slate-50 p-3 rounded-xl mb-4 border border-slate-200 flex-row justify-between items-center active:opacity-70"
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text className="text-slate-600 font-medium">Zmień datę:</Text>
+            <Text className="text-sky-600 font-bold text-base">
+              {date.toISOString().split('T')[0]}
+            </Text>
+          </Pressable>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display="default"
+              minimumDate={new Date()} // Blokada dat przeszłych
+              onChange={onDateChange}
+            />
+          )}
+
+          <View className="flex-row justify-between gap-3 mt-2">
             <Pressable 
               className="flex-1 bg-slate-100 p-3.5 rounded-xl items-center active:bg-slate-200 border border-slate-200"
               onPress={onClose}

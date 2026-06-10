@@ -63,13 +63,20 @@ export default function SettingsScreen() {
 
     {/* profil uzystkownika */}
       <View className="bg-sky-600 p-4 rounded-xl mb-6 shadow-sm border border-sky-700">
-        <Text className="text-white text-xs font-bold uppercase tracking-widest opacity-80">Aktywna sesja</Text>
-        <Text className="text-white text-2xl font-black mt-1">Witaj, {displayUsername}</Text>
-        <Text className="text-sky-100 text-[11px] mt-0.5 font-medium">ID: {user?.id}</Text>
-      </View>
-
-      <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Podsumowanie danych</Text>
-      <View className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex-row justify-around">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1">
+            <Text className="text-white text-xs font-bold uppercase tracking-widest opacity-80">Twoje konto:</Text>
+            <Text className="text-white text-2xl font-black mt-1">Witaj, {displayUsername}</Text>
+          </View>
+        <Pressable 
+          onPress={handleLogout}
+          className="bg-slate-100 p-2.5 rounded-lg items-center active:bg-slate-200 border border-slate-300"
+          >
+          <Text className="text-slate-700 font-bold text-sm">Wyloguj się</Text>
+        </Pressable>
+        </View>
+        <Text className="text-white text-xs font-bold uppercase tracking-widest opacity-80 mt-6 mb-3">Podsumowanie danych:</Text>
+      <View className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex-row justify-around">
         <View className="items-center">
           <Text className="text-xl font-black text-slate-800">{totalTasks}</Text>
           <Text className="text-[10px] text-slate-500 font-medium">Zadań</Text>
@@ -83,6 +90,10 @@ export default function SettingsScreen() {
           <Text className="text-[10px] text-slate-500 font-medium">W toku</Text>
         </View>
       </View>
+
+
+      </View>
+
 
       
       <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Opcje deweloperskie</Text>
@@ -102,20 +113,6 @@ export default function SettingsScreen() {
         </Pressable>
       </View>
 
-
-      <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Sesja użytkownika</Text>
-      <View className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <Text className="text-sm font-bold text-slate-800 mb-1">Bezpieczne wylogowanie</Text>
-        <Text className="text-slate-500 text-xs mb-3">
-          Usuwa zaszyfrowany token sesji z pamięci SecureStore i blokuje dostęp do zadań.
-        </Text>
-        <Pressable 
-          onPress={handleLogout}
-          className="bg-slate-100 p-2.5 rounded-lg items-center active:bg-slate-200 border border-slate-300"
-        >
-          <Text className="text-slate-700 font-bold text-sm">Wyloguj się</Text>
-        </Pressable>
-      </View>
 
 
       <View className="flex-1 justify-end items-center mb-2">
