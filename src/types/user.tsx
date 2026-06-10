@@ -15,6 +15,6 @@ export interface UserDto {
 
 export const GUEST_USER: User = {
   id: 'guest_local_device',
-  email: 'local_guest@todo4sure.local',
+  email: 'gosc@todo4sure.local',
   isGuest: true
 };

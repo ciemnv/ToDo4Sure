@@ -91,7 +91,7 @@ export default function SettingsScreen() {
       <View className="bg-white p-4 mb-6 rounded-xl border border-slate-200 shadow-sm">
         <Text className="text-sm font-bold text-slate-800 mb-1">Czyszczenie aplikacji</Text>
         <Text className="text-slate-500 text-xs mb-3">
-          Usuwa bezpowrotnie wszystkie wpisy z lokalnej bazy danych SQLite w celu przeprowadzenia czystych testów.
+          Usuwa bezpowrotnie wszystkie wpisy z listy zadań z bazy danych. 
         </Text>
         
         <Pressable 

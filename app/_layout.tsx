@@ -3,6 +3,8 @@ import { Stack } from 'expo-router';
 import { useAuthStore } from '../src/store/auth-store'; 
 import { ActivityIndicator, View } from 'react-native';
 import { initDatabase } from '@/src/database/db';
+import { supabase } from '@/src/services/supabase';
+import * as Linking from 'expo-linking';
 
 export default function RootLayout() {
   const { user, checkSession, isLoading } = useAuthStore();
@@ -16,9 +18,18 @@ export default function RootLayout() {
         // 1. NAJPIERW GWARANTUJEMY STWORZENIE TABELI W SQLITE
         await initDatabase();
         setIsDbReady(true);
-        
         // 2. DOPIERO POTEM SPRAWDZAMY ZASZYFROWANĄ SESJĘ W SECURESTORE
         await checkSession();
+
+        // NOWOŚĆ: Przechwytywanie powrotu z logowania Google (OAuth)
+        const subscription = Linking.addEventListener('url', (event) => {
+        const parsed = Linking.parse(event.url);
+        if (parsed.queryParams) {
+          // Supabase automatycznie ustawi sesję, jeśli w URL będą parametry auth
+          supabase.auth.getSession().then(() => checkSession());
+        }
+      });
+
       } catch (error) {
         console.error("Błąd krytyczny podczas startu aplikacji:", error);
         setIsDbReady(true); // Odblokowujemy w razie awarii, żeby ErrorBoundary przejął kontrolę

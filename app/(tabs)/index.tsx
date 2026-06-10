@@ -1,4 +1,7 @@
+import { EditTaskModal } from '@/components/editTaskModal';
 import { useTaskStore } from '@/src/store/task-store';
+import { Task } from '@/src/types/task';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
@@ -13,6 +16,10 @@ export default function TasksScreen() {
   const [selectedFilter, setSelectedFilter] = useState('Wszystkie');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isCameraLoading, setIsCameraLoading] = useState<string | null >(null); //przechowujemy id zadania ktore klikamy jako ukonczone
+
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<Task | null>(null);
 
   const { tasks, fetchTasks, addTask, deleteTask, completeTask, isLoading, error } = useTaskStore();
 
@@ -44,9 +51,12 @@ export default function TasksScreen() {
   };
 
   const handleCompleteTaskWithCamera = async (id: string) => {
+    setIsCameraLoading(id);
+    
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (permission.granted === false) {
       Alert.alert('Błąd', 'Musisz zezwolić aplikacji na dostęp do aparatu');
+      setIsCameraLoading(null);
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -54,6 +64,7 @@ export default function TasksScreen() {
       allowsEditing: false,
       quality: 0.7,
     });
+
     if (!result.canceled && result.assets && result.assets[0]?.uri) {
       const permanentUri = result.assets[0].uri;
       try {
@@ -62,6 +73,7 @@ export default function TasksScreen() {
         Alert.alert('Błąd', 'Nie udało się zaktualizować statusu zadania');
       }
     }
+    setIsCameraLoading(null);
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
@@ -75,6 +87,11 @@ export default function TasksScreen() {
     if (selectedFilter === 'Wszystkie') return true;
     return task.project === selectedFilter;
   });
+
+  const openEditModal = (task: Task) => {
+    setSelectedTaskForEdit(task);
+    setIsEditModalVisible(true);
+  };
 
   return (
     <View className="flex-1 bg-slate-50 p-4">
@@ -178,7 +195,14 @@ export default function TasksScreen() {
             return (
               <View className={isDone ? "bg-white p-4 rounded-xl mb-3 border border-slate-200 flex-row justify-between items-center opacity-50" : "bg-white p-4 rounded-xl mb-3 border border-slate-200 flex-row justify-between items-center"}>
                 <View className="flex-1 pr-4">
+                  <View className="flex-row items-center gap-2">
                   <Text className={isDone ? "text-lg font-semibold text-slate-400 line-through" : "text-lg font-semibold text-slate-900"}>{item.title}</Text>
+                   <Pressable 
+                    onPress={() => openEditModal(item)}
+                    >
+                    <Ionicons name="create-outline" size={16} color= "#64748b" />
+                  </Pressable>
+                  </View>
                   {item.description ? (
                     <Text className="text-slate-500 mt-1 text-sm">{item.description}</Text>
                   ) : null}
@@ -191,11 +215,19 @@ export default function TasksScreen() {
                   {isDone ? (
                     <Text className="text-emerald-600 font-bold mr-2 text-sm">Sukces</Text>
                   ) : (
-                    <Pressable 
-                      className="bg-emerald-600 px-3 py-2 rounded-lg active:bg-emerald-700"
+                  <Pressable 
+                      className={`bg-emerald-600 px-3 py-2 rounded-lg active:bg-emerald-700 flex-row items-center gap-1.5 ${isCameraLoading === item.id ? 'opacity-80' : ''}`}
                       onPress={() => handleCompleteTaskWithCamera(item.id)}
+                      disabled={isCameraLoading !== null} // Blokujemy klikanie innych przycisków w czasie ładowania
                     >
-                      <Text className="text-white font-medium text-sm">Zrobione</Text>
+                      {isCameraLoading === item.id ? (
+                        <>
+                          <ActivityIndicator size="small" color="#fff" />
+                          <Text className="text-white font-medium text-xs">Ładowanie...</Text>
+                        </>
+                      ) : (
+                        <Text className="text-white font-medium text-sm">Zrobione</Text>
+                      )}
                     </Pressable>
                   )}
                   <Pressable 
@@ -204,12 +236,24 @@ export default function TasksScreen() {
                   >
                     <Text className="text-rose-600 font-medium text-sm">Usuń</Text>
                   </Pressable>
+
+
+                  
                 </View>
               </View>
             );
           }}
         />
       )}
+
+      <EditTaskModal 
+        isVisible={isEditModalVisible}
+        task={selectedTaskForEdit}
+        onClose={() => {
+          setIsEditModalVisible(false);
+          setSelectedTaskForEdit(null);
+        }}
+      />
     </View>
   );
 }
