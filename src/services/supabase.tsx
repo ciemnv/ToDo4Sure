@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 
-const supabaseUrl = 'https://pssiqgrjgdkqhzkyhngv.supabase.co';
-const supabaseKey = 'sb_publishable_Kzu9p_peVz509NnUpLZE0Q_67jXR-ix';
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // asynchroniczny zapis tokenow Supabase w SecureStore
 const ExpoSecureStoreAdapter = {

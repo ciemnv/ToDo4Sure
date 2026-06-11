@@ -4,6 +4,7 @@ import { useAuthStore } from '../src/store/auth-store';
 import { ActivityIndicator, View } from 'react-native';
 import { initDatabase } from '@/src/database/db';
 import { supabase } from '@/src/services/supabase';
+import * as Notifications from 'expo-notifications';
 
 export default function RootLayout() {
   const { user, checkSession, isLoading } = useAuthStore();
@@ -28,30 +29,48 @@ export default function RootLayout() {
     setupApp();
   }, []);
 
-  // 2. Globalny nasłuchiwacz zmian stanu autentykacji (Obsługa powrotów z Google OAuth)
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session && session.user) {
-        // Po pomyślnym zalogowaniu przez Google/Email, aktualizujemy użytkownika ORAZ gasimy kółko ładowania!
-        useAuthStore.setState({
-          user: {
-            id: session.user.id,
-            email: session.user.email || '',
-            token: session.access_token,
-            isGuest: false
-          },
-          isLoading: false, // Przerywa nieskończone kręcenie się kółka na ekranie logowania
-          error: null
-        });
-      } else if (event === 'SIGNED_OUT') {
-        useAuthStore.setState({ user: null, isLoading: false });
-      }
-    });
+  // // 2. Globalny nasłuchiwacz zmian stanu autentykacji (Obsługa powrotów z Google OAuth)
+  // useEffect(() => {
+  //   const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+  //     if (session && session.user) {
+  //       // Po pomyślnym zalogowaniu przez Google/Email, aktualizujemy użytkownika ORAZ gasimy kółko ładowania!
+  //       useAuthStore.setState({
+  //         user: {
+  //           id: session.user.id,
+  //           email: session.user.email || '',
+  //           token: session.access_token,
+  //           isGuest: false
+  //         },
+  //         isLoading: false, // Przerywa nieskończone kręcenie się kółka na ekranie logowania
+  //         error: null
+  //       });
+  //     } else if (event === 'SIGNED_OUT') {
+  //       useAuthStore.setState({ user: null, isLoading: false });
+  //     }
+  //   });
 
-    return () => {
-      subscription.unsubscribe();
+  //   return () => {
+  //     subscription.unsubscribe();
+  //   };
+  // }, []);
+
+  useEffect(() => {
+    const requestNotificationPerm = async () => {
+      try {
+        const { status } = await Notifications.getPermissionsAsync();
+        if (status !== 'granted') {
+          await Notifications.requestPermissionsAsync();
+        }
+      } catch (e) {
+        // PANCERNY BEZPIECZNIK: Jeśli Expo Go nie potrafi pobrać uprawnień, 
+        // logujemy to w konsoli, ale nie crashujemy startu aplikacji!
+        console.warn("Powiadomienia systemowe niedostępne w tym środowisku:", e);
+      }
     };
+    
+    requestNotificationPerm(); 
   }, []);
+
 
   // Dopóki baza się tworzy LUB sklep sprawdza token, pokazujemy ekran ładowania
   if (!isDbReady || (isLoading && user === null)) {

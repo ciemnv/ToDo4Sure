@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { useAuthStore } from '../src/store/auth-store';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+// import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 
 
 export default function LoginScreen() {
@@ -11,12 +11,12 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const { user, loginWithEmail, signUpWithEmail, loginWithProvider, loginAsGuest, isLoading, error } = useAuthStore();
 
-  useEffect(() => {
-    GoogleSignin.configure({
-      // Wklej tutaj SWÓJ "Client ID" dla aplikacji INTERNETOWEJ (Web Application) z Google Cloud Console
-      webClientId: '703867197184-u4dn3geti0kpgfp29esougmhnjspbrqa.apps.googleusercontent.com',
-    });
-  }, []);
+  // useEffect(() => {
+  //   GoogleSignin.configure({
+  //     // tymczasowo przetrzymywany w kodzie ClientId
+  //     webClientId: '703867197184-u4dn3geti0kpgfp29esougmhnjspbrqa.apps.googleusercontent.com',
+  //   });
+  // }, []);
   
   useEffect(() => {
     // Jeśli w sklepie Zustand pojawi się zalogowany użytkownik, 
@@ -50,34 +50,42 @@ export default function LoginScreen() {
       } catch (e) {}
   };
 
-  const handleProviderLogin = async (providerName: 'google' | 'apple') => {
-    if (providerName !== 'google') return;
+  // const handleProviderLogin = async (providerName: 'google' | 'apple') => {
+  //   if (providerName !== 'google') return;
 
-    try {
-      // Sprawdzamy dostępność usług Google Play Services na telefonie
-      await GoogleSignin.hasPlayServices();
+  //   try {
+  //     // Sprawdzamy dostępność usług Google Play Services na telefonie
+  //     await GoogleSignin.hasPlayServices();
       
-      // Otwieramy natywne okno wyboru konta z dołu ekranu (Android Credential Manager)
-      const response = await GoogleSignin.signIn();
+  //     // Otwieramy natywne okno wyboru konta z dołu ekranu (Android Credential Manager)
+  //     const response = await GoogleSignin.signIn();
       
-      // Sprawdzamy czy logowanie zakończyło się sukcesem i mamy idToken
-      if (response && response.data && response.data.idToken) {
-        // Przesyłamy pobrany token tożsamości bezpośrednio do naszego sklepu Zustand
-        await loginWithProvider({ email: '', provider: 'google' }, response.data.idToken);
-      }
-    } catch (err: any) {
-      if (err.code === statusCodes.IN_PROGRESS) {
-        Alert.alert('Informacja', 'Autoryzacja jest już w toku.');
-      } else if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        Alert.alert('Błąd', 'Usługi Google Play są niedostępne lub przestarzałe.');
-      } else if (err.code === statusCodes.SIGN_IN_CANCELLED) {
-        console.log('Użytkownik anulował logowanie.');
-      } else {
-        Alert.alert('Błąd logowania Google', err.message || 'Nieznany błąd.');
-      }
+  //     // Sprawdzamy czy logowanie zakończyło się sukcesem i mamy idToken
+  //     if (response && response.data && response.data.idToken) {
+  //       // Przesyłamy pobrany token tożsamości bezpośrednio do naszego sklepu Zustand
+  //       await loginWithProvider({ email: '', provider: 'google' }, response.data.idToken);
+  //     }
+  //   } catch (err: any) {
+  //     if (err.code === statusCodes.IN_PROGRESS) {
+  //       Alert.alert('Informacja', 'Autoryzacja jest już w toku.');
+  //     } else if (err.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+  //       Alert.alert('Błąd', 'Usługi Google Play są niedostępne lub przestarzałe.');
+  //     } else if (err.code === statusCodes.SIGN_IN_CANCELLED) {
+  //       console.log('Użytkownik anulował logowanie.');
+  //     } else {
+  //       Alert.alert('Błąd logowania Google', err.message || 'Nieznany błąd.');
+  //     }
+  //   }
+  // };
+
+  const handleProviderLogin = async (providerName: 'google' | 'apple') => {
+    if (providerName === 'google') {
+      try {
+        // Odpalamy naszą bezpieczną makietę ze store'a, która wpuści nas do środka
+        await loginWithProvider({ email: '', provider: 'google' });
+      } catch (e) {}
     }
   };
-
   const handleGuestLogin = async () => {
     try {
       await loginAsGuest(); 
@@ -149,7 +157,7 @@ export default function LoginScreen() {
 
         <Text className="text-[10px] text-slate-400 font-bold uppercase text-center px-3 my-10">Lub zaloguj przez</Text>
 
-        {/* DRUGA METODA LOGOWANIA: INTEGRACJA z GOOGLE */}
+        
         <Pressable 
           className="bg-slate-900 p-3.5 rounded-xl items-center active:bg-black"
           onPress={() => handleProviderLogin('google')}
@@ -157,15 +165,16 @@ export default function LoginScreen() {
         >
           <Text className="text-white font-bold text-sm">Kontynuuj przez konto Google</Text>
         </Pressable>
-      </View>
+       
 
         <Pressable 
-            className="bg-slate-100 p-3.5 rounded-xl items-center active:bg-slate-200 border border-slate-200 mt-4"
-            onPress={handleGuestLogin}
-            disabled={isLoading}
-          >
-            <Text className="text-slate-600 font-bold text-sm">Kontynuuj jako gość</Text>
+          className="bg-slate-100 p-3.5 rounded-xl items-center active:bg-slate-200 border border-slate-200 mt-4"
+          onPress={handleGuestLogin}
+          disabled={isLoading}
+        >
+          <Text className="text-slate-600 font-bold text-sm">Kontynuuj jako gość</Text>
         </Pressable>
       </View>
+    </View>
     );
 }

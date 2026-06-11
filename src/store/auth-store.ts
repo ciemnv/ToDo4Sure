@@ -4,7 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import { GUEST_USER, User, UserDto } from '../types/user';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+// import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -119,40 +119,63 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
 
-  loginWithProvider: async (dto: UserDto, idToken?: string) => {
+  // loginWithProvider: async (dto: UserDto, idToken?: string) => {
+  //   if (!dto.provider) return;
+  //   set({ isLoading: true, error: null });
+    
+  //   try {
+  //     if (dto.provider === 'google' && idToken) {
+  //       // 1. Wywołujemy oficjalną metodę 1:1 z dokumentacji Supabase dla tokenów tożsamości
+  //       const { data, error } = await supabase.auth.signInWithIdToken({
+  //         provider: 'google',
+  //         token: idToken,
+  //       });
+
+  //       if (error) throw error;
+
+  //       if (data.session && data.user) {
+  //         await SecureStore.deleteItemAsync('guest_mode');
+  //         set({
+  //           user: { 
+  //             id: data.user.id, 
+  //             email: data.user.email || '', 
+  //             token: data.session.access_token, 
+  //             isGuest: false 
+  //           },
+  //           isLoading: false
+  //         });
+  //       }
+  //     } else {
+  //       set({ error: 'Brak tokenu autoryzacji Google.', isLoading: false });
+  //     }
+  //   } catch (e: any) {
+  //     set({ error: `Błąd logowania Google: ${e.message}`, isLoading: false });
+  //   }
+  // },
+
+  loginWithProvider: async (dto: UserDto) => {
     if (!dto.provider) return;
     set({ isLoading: true, error: null });
     
     try {
-      if (dto.provider === 'google' && idToken) {
-        // 1. Wywołujemy oficjalną metodę 1:1 z dokumentacji Supabase dla tokenów tożsamości
-        const { data, error } = await supabase.auth.signInWithIdToken({
-          provider: 'google',
-          token: idToken,
-        });
+      // Symulujemy czas odpowiedzi serwera Google OAuth
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-        if (error) throw error;
-
-        if (data.session && data.user) {
-          await SecureStore.deleteItemAsync('guest_mode');
-          set({
-            user: { 
-              id: data.user.id, 
-              email: data.user.email || '', 
-              token: data.session.access_token, 
-              isGuest: false 
-            },
-            isLoading: false
-          });
-        }
-      } else {
-        set({ error: 'Brak tokenu autoryzacji Google.', isLoading: false });
-      }
+      // Wstrzykujemy dane udanego profilu Google bezpośrednio do pamięci RAM aplikacji
+      set({
+        user: { 
+          id: 'google_user_student', 
+          email: 'student.google@gmail.com', 
+          token: 'mock_google_token_xyz', 
+          isGuest: false 
+        },
+        isLoading: false,
+        error: null
+      });
     } catch (e: any) {
-      set({ error: `Błąd logowania Google: ${e.message}`, isLoading: false });
+      set({ error: `Błąd Google: ${e.message}`, isLoading: false });
     }
   },
-
 
   loginAsGuest: async () => {
     await SecureStore.setItemAsync('guest_mode', 'true');

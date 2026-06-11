@@ -144,9 +144,35 @@ export const TaskService = {
     }
   },
 
-  //edycja zadania
-  async updateTask(id: string, title: string, description: string, project: string, dueDate: string): Promise<void> {
-    await TaskRepository.updateTask(id, title, description, project, dueDate);
+  async updateTask(
+    id: string,
+    title: string,
+    description: string,
+    project: string,
+    dueDate: string
+  ): Promise<void> {
+
+    await TaskRepository.updateTask(
+      id,
+      title,
+      description,
+      project,
+      dueDate
+    );
+
+    const netState = await NetInfo.fetch();
+
+    if (netState.isConnected) {
+      await supabase
+        .from('tasks')
+        .update({
+          title,
+          description,
+          project,
+          dueDate
+        })
+        .eq('id', id);
+    }
   },
 
   // kompleksowe czyszczenie baz danych
