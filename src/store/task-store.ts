@@ -47,8 +47,8 @@ export const useTaskStore = create<TaskState>((set) => ({
     try {
       const allTasks = await TaskService.getTasks(currentUser);
       set({ tasks: allTasks, isLoading: false, error: null });
-    } catch (error: any) {
-      set({ error: `Błąd bazy: ${error.message || error}`, isLoading: false });
+    } catch (error) {
+      set({ error: `Błąd bazy: ${error}`, isLoading: false });
     }
   },
 
@@ -125,8 +125,8 @@ export const useTaskStore = create<TaskState>((set) => ({
       
       // czyscimy stan, rerenderujac ui aplikacji
       set({ tasks: [], isLoading: false, error: null });
-    } catch (error: any) {
-      set({ error: `Nie udało się wyczyścić bazy danych: ${error.message || error}`, isLoading: false });
+    } catch (error) {
+      set({ error: `Nie udało się wyczyścić bazy danych: ${error}`, isLoading: false });
     }
   },
 }));

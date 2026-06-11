@@ -172,8 +172,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         isLoading: false,
         error: null
       });
-    } catch (e: any) {
-      set({ error: `Błąd Google: ${e.message}`, isLoading: false });
+    } catch (e) {
+      set({ error: `Błąd Google: ${e}`, isLoading: false });
     }
   },
 
