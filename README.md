@@ -66,7 +66,7 @@ Testy obejmują: logikę Zustand Store, renderowanie ekranów, walidację formul
 
 - Aby użytkownik mógł korzystać z aplikacji bez internetu, wykorzystaliśmy SQLite jako lokany cache do przechowywania danych
 - Zustand został wykorzystany jako globalny magazyn stanu aplikacji. Dzięki temu komponenty nie komunikują się ze sobą bezpośrednio i nie przekazują danych przez wiele poziomów.
-- Supabase odpowiada za autoryzację i synchronizację danych, dzięki czemu użytkownik może korzystać z aplikacji na wielu urządzeniach.
+- Supabase odpowiada za autoryzację i synchronizację danych, dzięki czemu logować się może wiele użytkowników z różnych kont, zachowując swoje dane.
 
 
 
@@ -100,10 +100,13 @@ Aplikacja została stworzona pod kątem uruchomienia w środowisku ExpoGo.
 4. **Uruchamianie przez MetroBundler**
    ```bash 
    npx expo start -c
-5. **Uruchomienie na urządzeniu**
+5. **Przełączenie na tryb ExpoGo**
+   Jeśli Metro odpala się w trybie development build, przełącz na poprawny tryb Expo Go
+   ```bash
+   s
+6. **Uruchomienie na urządzeniu**
     Otwórz aplikację aparatu i zeskanuj kod QR z aplikacją ExpoGo
-6. **Alternatywne uruchomienie z AndroidStudio**
+7. **Alternatywne uruchomienie z AndroidStudio**
    ```bash
    a 
 
-> *„Klucze konfiguracyjne Supabase (URL oraz Anon Key) są demonstracyjnie zaimplementowane bezpośrednio w warstwie sieciowej aplikacji, co pozwala na natychmiastowe testowanie chmury bez potrzeby ręcznego tworzenia pliku `.env`.”*
