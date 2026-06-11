@@ -6,18 +6,13 @@ Mobilna aplikacja do zarządzania zadaniami stworzona w React Native + Expo.
 
 ## Funkcjonalności:
 
-### Tworzenie zadań:
-
-Dodajemy zadanie w głównym panelu, po zalogowaniu użytkowników. Do uzupełnienia mamy tytuł, opcjonalnie opis, kategorię oraz datę.
-
-- edycję i usuwanie
-- przypisywanie kategorii
-- planowanie terminów
-- podgląd w kalendarzu
-- pracę offline
-- synchronizację z chmurą
-- logowanie użytkowników
-- potwierdzanie wykonania zadania zdjęciem
+- Dodawanie zadań (Tytuł, opcjonalny opis, przypisanie kategorii oraz wybór daty realizacji)
+- Edycja zawartości oraz usuwanie zadań
+- Fltrowanie według kategorii zadania
+- Planowanie terminów i modalowy podgląd w interaktywnym kalendarzu
+- Praca w trybie offline (pełne wsparcie architektury Offline-First)
+- Automatyczna synchronizacja danych z chmurą po odzyskaniu połączenia sieciowego
+- Potwierdzanie wykonania zadania poprzez wykonanie zdjęcia wbudowanym aparatem
 
 
 ## Technologie
@@ -29,7 +24,7 @@ Dodajemy zadanie w głównym panelu, po zalogowaniu użytkowników. Do uzupełni
 - Zustand
 - SQLite
 - Supabase
-- NativeWind (TailwindCSS)
+- NativeWind
 - Expo Notifications
 - Expo Image Picker
 - Jest
