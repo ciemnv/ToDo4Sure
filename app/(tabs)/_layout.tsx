@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as Notifications from 'expo-notifications';
+// import * as Notifications from 'expo-notifications';
 import { Tabs } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
@@ -10,22 +10,24 @@ import { useAuthStore } from '@/src/store/auth-store';
 export default function TabLayout() {
   const { user } = useAuthStore(); // Pobieramy obiekt użytkownika
 
-  useEffect(() => {
-    const requestNotificationPerm = async () => {
-      try {
-        const { status } = await Notifications.getPermissionsAsync();
-        if (status !== 'granted') {
-          await Notifications.requestPermissionsAsync();
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
+  //obsługa powiadomień
+  // useEffect(() => {
+  //   const requestNotificationPerm = async () => {
+  //     try {
+  //       const { status } = await Notifications.getPermissionsAsync();
+  //       if (status !== 'granted') {
+  //         await Notifications.requestPermissionsAsync();
+  //       }
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   };
     
-    requestNotificationPerm(); 
-  }, []); 
+  //   requestNotificationPerm(); 
+  // }, []); 
 
   // Nazwa do powitania - to początek emaila
+  
   const username = user?.email ? user.email.split('@')[0] : 'Użytkownik';
   const welcomeMessage = `Witaj, ${username}`;
 

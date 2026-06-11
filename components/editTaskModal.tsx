@@ -12,7 +12,6 @@ interface EditTaskModalProps {
     task: Task | null;
 }
 
-// const AVAILABLE_PROJECTS = ['Główne', 'Studia', 'Dom'];
 
 
 export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isVisible, onClose, task }) => {
@@ -32,7 +31,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({ isVisible, onClose
             setDescription(task.description || '');
             setDate(new Date(task.dueDate));
 
-            // NOWA LOGIKA MAPOWANIA STARYCH NAZW NA NOWE:
             // Sprawdzamy, czy projekt przypisany do zadania (np. 'Studia') wciąż istnieje w naszych 3 slotach
             if (projects.includes(task.project)) {
                 setProject(task.project);

@@ -1,4 +1,4 @@
-import * as Linking from 'expo-linking';
+// import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import { create } from 'zustand';
