@@ -58,7 +58,7 @@ describe('TasksScreen - Testy Interfejsu i Formularza', () => {
     });
   });
 
-  // TEST 6
+  // TEST 1 --- renderowanie formularza
   it('powinien poprawnie wyrenderować nagłówek formularza oraz puste pola tekstowe', async () => {
     const { getByPlaceholderText, getByText } = await render(<TasksScreen />);
     
@@ -66,7 +66,7 @@ describe('TasksScreen - Testy Interfejsu i Formularza', () => {
     expect(getByPlaceholderText('Tytuł zadania...')).toBeTruthy();
   });
 
-  // TEST 7
+  // TEST 2 --- walidacja pustego formularza
   it('powinien wywołać Alert błędu, gdy użytkownik zatwierdzi formularz z pustym tytułem', async () => {
     const { getByText } = await render(<TasksScreen />);
     
@@ -76,7 +76,7 @@ describe('TasksScreen - Testy Interfejsu i Formularza', () => {
     expect(Alert.alert).toHaveBeenCalledWith('Błąd', 'Tytuł zadania nie może być pusty!');
   });
 
-  // TEST 8
+  // TEST 3 --- wyswietlanie ladowania
   it('powinien wyświetlić komunikat o ładowaniu, gdy stan isLoading wynosi true', async () => {
     (useTaskStore as unknown as jest.Mock).mockReturnValue({
       tasks: [],
@@ -90,7 +90,7 @@ describe('TasksScreen - Testy Interfejsu i Formularza', () => {
     expect(getByText(/Wczytywanie/i)).toBeTruthy();
   });
 
-  // TEST 9
+  // TEST 4 --- wyswietlanie listy zadan
   it('powinien poprawnie wyrenderować kafelki zadań wraz z ich terminami', async () => {
     // AKTUALIZACJA: Dopasowanie struktury danych do pełnego modelu z obiektem user oraz imageUri jako null
     const sampleTasks = [

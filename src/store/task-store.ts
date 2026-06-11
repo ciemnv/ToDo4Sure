@@ -110,12 +110,23 @@ export const useTaskStore = create<TaskState>((set) => ({
 
   clearAllTasks: async () => {
     set({ isLoading: true, error: null });
+    
+    // pobieramy aktualnego użytkownika, żeby wiedzieć, czyje zadania usunąć z chmury
+    const currentUser = useAuthStore.getState().user;
+
+    if (!currentUser) {
+      set({ error: 'Brak aktywnej sesji do wyczyszczenia danych.', isLoading: false });
+      return;
+    }
+
     try {
-      // Wywołujemy czyszczenie tabeli w repozytorium poprzez serwis
-      await TaskRepository.deleteAllTasks(); 
+      // wwołujemy dedykowany serwis zamiast pomijać architekturę aplikacji
+      await TaskService.deleteAllTasks(currentUser);
+      
+      // czyscimy stan, rerenderujac ui aplikacji
       set({ tasks: [], isLoading: false, error: null });
-    } catch (error) {
-      set({ error: 'Nie udało się wyczyścić bazy danych.', isLoading: false });
+    } catch (error: any) {
+      set({ error: `Nie udało się wyczyścić bazy danych: ${error.message || error}`, isLoading: false });
     }
   },
 }));

@@ -2,6 +2,7 @@
 
 import { TaskService } from '../../services/task-service';
 import { useTaskStore } from '../task-store';
+import { useAuthStore } from '../auth-store'; // NOWOŚĆ: Importujemy auth-store, aby ustawić sesję użytkownika
 import { User } from '../../types/user';
 import { Task } from '../../types/task';
 
@@ -12,7 +13,7 @@ jest.mock('../../services/task-service', () => ({
     createTask: jest.fn(),
     deleteTask: jest.fn(),
     completeTask: jest.fn(),
-    updateTask: jest.fn() // Dodajemy zmapowaną metodę edycji
+    updateTask: jest.fn()
   }
 }));
 
@@ -26,31 +27,32 @@ const mockUser: User = {
 describe('useTaskStore - Testy Logiki Biznesowej (Zustand)', () => {
   
   beforeEach(() => {
-    // Przed każdym testem resetujemy stan do domyślnego
+    // Wstrzykujemy aktywnego użytkownika do auth-store przed każdym testem,
+    // dzięki czemu akcje fetchTasks i addTask nie wywalą się na bezpiecznikach sesji!
+    useAuthStore.setState({ user: mockUser, isLoading: false, error: null });
+
+    // Przed każdym testem resetujemy stan task-store do domyślnego
     useTaskStore.setState({ tasks: [], isLoading: false, error: null });
     jest.clearAllMocks();
   });
 
-  // TEST 1
-  it('powinien zainicjalizować się z domyślnymi parametrami (pusta lista, brak ładowania, brak błędu)', () => {
+  // TEST 1 --- sprawdzenie inicjalizacji stanu początkowego
+  it('powinien zainicjalizować się z domyślnymi parametrami (lista i error na null, isLoading false)', () => {
     const state = useTaskStore.getState();
     expect(state.tasks).toEqual([]);
     expect(state.isLoading).toBe(false);
     expect(state.error).toBeNull();
   });
 
-  // TEST 2
+  // TEST 2 --- sprawdzenie wskaźnika ładowania
   it('powinien włączyć flagę isLoading podczas uruchomienia fetchTasks', async () => {
-    (TaskService.getTasks as jest.Mock).mockReturnValue(new Promise(() => {})); // wstrzymana obietnica (pendings)
-    
+    (TaskService.getTasks as jest.Mock).mockReturnValue(new Promise(() => {})); // wstrzymana obietnica (pending)
     useTaskStore.getState().fetchTasks();
-    
     expect(useTaskStore.getState().isLoading).toBe(true);
   });
 
-  // TEST 3
+  // TEST 3 --- sprawdzenie pobierania danych (fetchTask)
   it('powinien pomyślnie zapisać zadania wraz z obiektem User do stanu po udanym fetchTasks', async () => {
-    // AKTUALIZACJA: Zadanie zawiera teraz pełny obiekt użytkownika (zgodnie z architekturą)
     const mockTasks: Task[] = [
       { 
         id: '1', 
@@ -73,21 +75,30 @@ describe('useTaskStore - Testy Logiki Biznesowej (Zustand)', () => {
     expect(useTaskStore.getState().error).toBeNull();
   });
 
-  // TEST 4
-  it('powinien ustawić poprawny polski komunikat o błędzie, gdy baza danych SQLite zawiedzie', async () => {
+  // TEST 4 --- obsługa błędów bazy danych sqlite
+  it('powinien ustawić poprawny komunikat o błędzie, gdy baza danych SQLite zawiedzie', async () => {
+    // Wymuszamy rzucenie błędu przez bazę danych
     (TaskService.getTasks as jest.Mock).mockRejectedValue(new Error('SQL Error'));
 
     await useTaskStore.getState().fetchTasks();
 
     expect(useTaskStore.getState().tasks).toEqual([]);
     expect(useTaskStore.getState().isLoading).toBe(false);
-    // AKTUALIZACJA: Dopasowanie do pancernej, polskiej obsługi błędów
-    expect(useTaskStore.getState().error).toContain('error'); 
+    // NAPRAWIONE: Sprawdzamy czy komunikat zawiera słowo 'Store' lub 'bazy', 
+    // zgodnie z tym, co wpisałeś w linii 320 w task-store.ts: "Błąd bazy: ..."
+    expect(useTaskStore.getState().error).toContain('Błąd bazy'); 
   });
 
-  // TEST 5
+  // TEST 5 --- dodawanie nowego zadania
   it('powinien dodać zadanie ze strukturą obiektową po pomyślnym wykonaniu addTask', async () => {
-    const createdTask: Task = { 
+    const mockPayload = { 
+      title: 'Kupić mleko', 
+      description: '', 
+      project: 'Dom', 
+      dueDate: '2026-06-15' 
+    };
+
+    const expectedCreatedTask: Task = { 
       id: '2', 
       title: 'Kupić mleko', 
       description: '', 
@@ -97,34 +108,30 @@ describe('useTaskStore - Testy Logiki Biznesowej (Zustand)', () => {
       imageUri: null,
       user: mockUser
     };
-    (TaskService.createTask as jest.Mock).mockResolvedValue(createdTask);
     
-    await useTaskStore.getState().addTask(createdTask);
+    (TaskService.createTask as jest.Mock).mockResolvedValue(expectedCreatedTask);
+    
+    await useTaskStore.getState().addTask(mockPayload);
 
-    expect(useTaskStore.getState().tasks).toContainEqual(createdTask);
+    expect(useTaskStore.getState().tasks).toContainEqual(expectedCreatedTask);
     expect(useTaskStore.getState().tasks.length).toBe(1);
     expect(useTaskStore.getState().tasks[0].project).toBe('Dom');
   });
 
-  // NOWY TEST 6: REAGOWANIE NA ZMIANĘ NAZW KATEGORII W USTAIWENIACH
-  it('powinien poprawnie zaktualizować filtry i nazwy projektów w istniejących zadaniach (Kaskada)', async () => {
-    // 1. Wrzucamy dwa zadania do sklepu (jedno ze starej kategorii, drugie z innej)
+  // TEST 6 --- sprawdzenie aktualizacji kategorii
+  it('powinien poprawnie zaktualizować filtry i nazwy projektów w istniejących zadaniach', async () => {
     const task1: Task = { id: '10', title: 'Projekt na studia', description: '', project: 'Studia', dueDate: '2026-06-20', isCompleted: 0, imageUri: null, user: mockUser };
     const task2: Task = { id: '11', title: 'Wynieść śmieci', description: '', project: 'Dom', dueDate: '2026-06-21', isCompleted: 0, imageUri: null, user: mockUser };
     
     useTaskStore.setState({ tasks: [task1, task2] });
 
-    // 2. Symulujemy zachowanie akcji z project-store.ts: ręcznie mapujemy tablicę zadań podmieniając 'Studia' -> 'Uniwerko'
     const { tasks } = useTaskStore.getState();
     const updatedTasks = tasks.map(t => t.project === 'Studia' ? { ...t, project: 'Uniwerko' } : t);
     useTaskStore.setState({ tasks: updatedTasks });
 
-    // 3. Sprawdzamy czy stan RAM zareagował prawidłowo
     const finalTasks = useTaskStore.getState().tasks;
     
-    // Zadanie 1 powinno mieć teraz kategorię 'Uniwerko'
     expect(finalTasks.find(t => t.id === '10')?.project).toBe('Uniwerko');
-    // Zadanie 2 powinno pozostać nienaruszone jako 'Dom'
     expect(finalTasks.find(t => t.id === '11')?.project).toBe('Dom');
   });
 });

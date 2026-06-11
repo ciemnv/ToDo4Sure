@@ -4,33 +4,21 @@ import { useAuthStore } from '../src/store/auth-store';
 import { ActivityIndicator, View } from 'react-native';
 import { initDatabase } from '@/src/database/db';
 import { supabase } from '@/src/services/supabase';
-import * as Linking from 'expo-linking';
-import { useProjectStore } from '@/src/store/project-store';
 
 export default function RootLayout() {
   const { user, checkSession, isLoading } = useAuthStore();
   const [isDbReady, setIsDbReady] = useState(false); // Stan blokady aplikacji
 
-
-  //efektem ubocznym będzie sprawdzenie sesji wywołane z auth-store
+  // 1. Inicjalizacja bazy danych i sesji lokalnej przy starcie aplikacji
   useEffect(() => {
     const setupApp = async () => {
       try {
-        // 1. NAJPIERW GWARANTUJEMY STWORZENIE TABELI W SQLITE
+        // Gwarantujemy stworzenie tabeli w SQLite
         await initDatabase();
         setIsDbReady(true);
-        // 2. DOPIERO POTEM SPRAWDZAMY ZASZYFROWANĄ SESJĘ W SECURESTORE
+        
+        // Sprawdzamy zaszyfrowaną sesję w chmurze / SecureStore
         await checkSession();
-
-        // NOWOŚĆ: Przechwytywanie powrotu z logowania Google (OAuth)
-        const subscription = Linking.addEventListener('url', (event) => {
-        const parsed = Linking.parse(event.url);
-        if (parsed.queryParams) {
-          // Supabase automatycznie ustawi sesję, jeśli w URL będą parametry auth
-          supabase.auth.getSession().then(() => checkSession());
-        }
-      });
-
       } catch (error) {
         console.error("Błąd krytyczny podczas startu aplikacji:", error);
         setIsDbReady(true); // Odblokowujemy w razie awarii, żeby ErrorBoundary przejął kontrolę
@@ -40,40 +28,33 @@ export default function RootLayout() {
     setupApp();
   }, []);
 
+  // 2. Globalny nasłuchiwacz zmian stanu autentykacji (Obsługa powrotów z Google OAuth)
   useEffect(() => {
-  // Nasłuchiwanie na globalną zmianę stanu autentykacji w Supabase (e-mail, Google, Apple)
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-    if (session && session.user) {
-      // Jeśli pojawiła się sesja z Google, natychmiast zapisujemy użytkownika w Zustandzie
-      useAuthStore.setState({
-        user: {
-          id: session.user.id,
-          email: session.user.email || '',
-          token: session.access_token,
-          isGuest: false
-        }
-      });
-    } else {
-      // Brak sesji -> czyszczenie stanu (np. po wylogowaniu)
-      useAuthStore.setState({ user: null });
-    }
-  });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session && session.user) {
+        // Po pomyślnym zalogowaniu przez Google/Email, aktualizujemy użytkownika ORAZ gasimy kółko ładowania!
+        useAuthStore.setState({
+          user: {
+            id: session.user.id,
+            email: session.user.email || '',
+            token: session.access_token,
+            isGuest: false
+          },
+          isLoading: false, // Przerywa nieskończone kręcenie się kółka na ekranie logowania
+          error: null
+        });
+      } else if (event === 'SIGNED_OUT') {
+        useAuthStore.setState({ user: null, isLoading: false });
+      }
+    });
 
-  return () => {
-    subscription.unsubscribe();
-  };
-}, []);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Dopóki baza się tworzy LUB sklep sprawdza token, pokazujemy ekran ładowania
   if (!isDbReady || (isLoading && user === null)) {
-    return (
-      <View className="flex-1 justify-center items-center bg-slate-50">
-        <ActivityIndicator size="large" color="#0284c7" />
-      </View>
-    );
-  }
-
-  if (isLoading && user === null) {
     return (
       <View className="flex-1 justify-center items-center bg-slate-50">
         <ActivityIndicator size="large" color="#0284c7" />

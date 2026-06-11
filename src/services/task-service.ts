@@ -147,5 +147,22 @@ export const TaskService = {
   //edycja zadania
   async updateTask(id: string, title: string, description: string, project: string, dueDate: string): Promise<void> {
     await TaskRepository.updateTask(id, title, description, project, dueDate);
+  },
+
+  // kompleksowe czyszczenie baz danych
+  async deleteAllTasks(currentUser: User): Promise<void> {
+    // 1. Zawsze czyścimy lokalne repozytorium SQLite
+    await TaskRepository.deleteAllTasks();
+
+    // 2. Jeśli użytkownik jest online i nie jest gościem, czyścimy też jego zadania w Supabase
+    const netState = await NetInfo.fetch();
+    if (netState.isConnected && !currentUser.isGuest) {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('userId', currentUser.id); // Czyścimy tylko zadania zalogowanego studenta!
+
+      if (error) throw error;
+    }
   }
 };

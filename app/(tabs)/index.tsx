@@ -12,7 +12,7 @@ import { ActivityIndicator, Alert, FlatList, Pressable, ScrollView, Text, TextIn
 
 export default function TasksScreen() {
   const { projects } = useProjectStore();
-  const [selectedProject, setSelectedProject] = useState('Wszystkie');
+  // const [selectedProject, setSelectedProject] = useState('Wszystkie');
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -34,15 +34,15 @@ export default function TasksScreen() {
   
   useEffect(() => {
   // Sprawdzamy, czy aktualnie wybrany filtr to nie jest przypadek "Wszystkie"
-  if (selectedProject !== 'Wszystkie') {
+  if (selectedFilter !== 'Wszystkie') {
     // Jeśli wybrana nazwa projektu NIE znajduje się już w tablicy 3 aktualnych projektów,
     // oznacza to, że użytkownik właśnie ją zmienił w Ustawieniach.
-    const projectExists = projects.includes(selectedProject);
+    const projectExists = projects.includes(selectedFilter);
     
     if (!projectExists) {
       // Automatycznie resetujemy filtr na 'Wszystkie' lub na pierwszy dostępny projekt, 
       // dzięki czemu lista zadań nie zrobi się pusta!
-      setSelectedProject('Wszystkie');
+      setSelectedFilter('Wszystkie');
     }
   }
 }, [projects]);

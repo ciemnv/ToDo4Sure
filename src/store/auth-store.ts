@@ -4,6 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import { GUEST_USER, User, UserDto } from '../types/user';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -15,7 +16,7 @@ interface AuthState {
   checkSession: () => Promise<void>;
   loginWithEmail: (dto: UserDto) => Promise<void>;
   signUpWithEmail: (dto: UserDto) => Promise<void>;
-  loginWithProvider: (dto: UserDto) => Promise<void>; //logowanie z Google
+  loginWithProvider: (dto: UserDto, idToken?: string) => Promise<void>; //logowanie z Google
   loginAsGuest: () => void;
   logout: () => Promise<void>;
 }
@@ -118,40 +119,37 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
 
-  loginWithProvider: async (dto: UserDto) => {
+  loginWithProvider: async (dto: UserDto, idToken?: string) => {
     if (!dto.provider) return;
     set({ isLoading: true, error: null });
     
     try {
-      const redirectUrl = Linking.createURL('', { scheme: 'todo4sure' });
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: dto.provider,
-        options: {
-          redirectTo: redirectUrl,
-          skipBrowserRedirect: true,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        // 1. Tworzymy nasłuchiwanie na moment, w którym telefon dostanie sygnał powrotny
-        const authSubscription = Linking.addEventListener('url', (event) => {
-          // Gdy system operacyjny wykryje powrót (todo4sure://), natychmiast zamykamy okno przeglądarki!
-          WebBrowser.dismissBrowser();
-          authSubscription.remove(); // Czyszczenie nasłuchiwania
+      if (dto.provider === 'google' && idToken) {
+        // 1. Wywołujemy oficjalną metodę 1:1 z dokumentacji Supabase dla tokenów tożsamości
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: idToken,
         });
 
-        // 2. Otwieramy przeglądarkę
-        await WebBrowser.openBrowserAsync(data.url);
+        if (error) throw error;
+
+        if (data.session && data.user) {
+          await SecureStore.deleteItemAsync('guest_mode');
+          set({
+            user: { 
+              id: data.user.id, 
+              email: data.user.email || '', 
+              token: data.session.access_token, 
+              isGuest: false 
+            },
+            isLoading: false
+          });
+        }
+      } else {
+        set({ error: 'Brak tokenu autoryzacji Google.', isLoading: false });
       }
-      
-      // KLUZOWE: Wyłączamy ładowanie OD RAZU po otwarciu/zamknięciu przeglądarki,
-      // dzięki czemu kółko nie będzie się kręcić w nieskończoność, jeśli okno utknie!
-      set({ isLoading: false });
     } catch (e: any) {
-      set({ error: `Błąd OAuth: ${e.message}`, isLoading: false });
+      set({ error: `Błąd logowania Google: ${e.message}`, isLoading: false });
     }
   },
 

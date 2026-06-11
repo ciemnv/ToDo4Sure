@@ -77,10 +77,15 @@ export default function SettingsScreen() {
 
   const handleLogout = async () => {
     try {
-      await logout(); // 1. Czyścimy Zustand i SecureStore
-      router.replace('/login'); // 2. Przekierowanie do logowania
+      // 1. Czekamy, aż Supabase i Zustand pomyślnie zamkną sesję w chmurze i usuną SecureStore
+      await logout();
+      
+      // 2. po sukcesie zmieniamy ekran aplikacji
+      router.replace('/login');
     } catch (error) {
-      Alert.alert('Błąd', 'Nie udało się poprawnie wylogować.');
+      // Jeśli sieć nie działa, pozwalamy użytkownikowi wyjść awaryjnie do ekranu logowania
+      console.warn("Wylogowanie sieciowe nie powiodło się:", error);
+      router.replace('/login');
     }
   };
 
