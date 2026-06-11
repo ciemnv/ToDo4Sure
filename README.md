@@ -45,20 +45,22 @@ UI Layer -> Zustand Store -> Service Layer -> Repository Layer -> SQLite / Supab
 
 ### Tworzenie zadań
 
-miejsce na zdjecie
+https://ibb.co/Pzg5FMRD
 
 ### Kalendarz
 
-miejsce na zdjecie
+https://ibb.co/JWYfwZBQ
+
 
 ### Edycja zadania
 
-miejsce na zdjecie
+https://ibb.co/4ZGgR8d0
 
 ### Logowanie
 
-miejsce na zdjecie
-
+https://ibb.co/wrZtcLcg
+https://ibb.co/MxB9N05s
+https://ibb.co/s99Sjwm2)))
 
 
 ## Testy
