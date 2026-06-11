@@ -93,12 +93,16 @@ Aplikacja została stworzona pod kątem uruchomienia w środowisku ExpoGo.
 2. **Instalacja zależności:**
    ```bash
    npm install
-3. **Uruchamianie przez MetroBundler**
+3. **Konfiguracja zmiennych środowiskowych**
+   ```bash
+   EXPO_PUBLIC_SUPABASE_URL=https://pssiqgrjgdkqhzkyhngv.supabase.co
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=twoj_anon_public_key_supabase
+4. **Uruchamianie przez MetroBundler**
    ```bash 
    npx expo start -c
-4. **Uruchomienie na urządzeniu**
+5. **Uruchomienie na urządzeniu**
     Otwórz aplikację aparatu i zeskanuj kod QR z aplikacją ExpoGo
-5. **Alternatywne uruchomienie z AndroidStudio**
+6. **Alternatywne uruchomienie z AndroidStudio**
    ```bash
    a 
 
