@@ -19,7 +19,7 @@ jest.mock('../../src/store/task-store', () => ({
   useTaskStore: jest.fn()
 }));
 
-// 3. NOWOŚĆ: Mockujemy globalny stan Zustand dla 3 dynamicznych projektów
+// 3. Mockujemy globalny stan Zustand dla 3 dynamicznych projektów
 jest.mock('../../src/store/project-store', () => ({
   useProjectStore: jest.fn()
 }));
@@ -92,7 +92,7 @@ describe('TasksScreen - Testy Interfejsu i Formularza', () => {
 
   // TEST 4 --- wyswietlanie listy zadan
   it('powinien poprawnie wyrenderować kafelki zadań wraz z ich terminami', async () => {
-    // AKTUALIZACJA: Dopasowanie struktury danych do pełnego modelu z obiektem user oraz imageUri jako null
+    // Dopasowanie struktury danych do pełnego modelu z obiektem user oraz imageUri jako null
     const sampleTasks = [
       { 
         id: '10', 
