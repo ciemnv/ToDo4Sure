@@ -1,9 +1,9 @@
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import TasksScreen from '../(tabs)/index';
-import { useTaskStore } from '../../src/store/task-store';
-import { useProjectStore } from '../../src/store/project-store'; 
 import { Alert } from 'react-native';
+import TasksScreen from '../(tabs)/index';
+import { useProjectStore } from '../../src/store/project-store';
+import { useTaskStore } from '../../src/store/task-store';
 import { User } from '../../src/types/user';
 
 // 1. MOCK EXPO NOTIFICATIONS

@@ -8,6 +8,8 @@ import { useAuthStore } from '@/src/store/auth-store';
 
 
 export default function TabLayout() {
+  //hook od Zustanda - dane o zalogowanym użytkowniku są potrzebne w całej aplikacji
+  //dzięki Zustanowi możemy współdzielić ten stan w architekturze globalnej
   const { user } = useAuthStore(); // Pobieramy obiekt użytkownika
 
   //obsługa powiadomień
@@ -28,6 +30,7 @@ export default function TabLayout() {
 
   // Nazwa do powitania - to początek emaila
   
+  //? zabezpiecza nas przed błędami
   const username = user?.email ? user.email.split('@')[0] : 'Użytkownik';
   const welcomeMessage = `Witaj, ${username}`;
 
@@ -36,7 +39,8 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: true,
         tabBarActiveTintColor: '#0284c7', 
-        tabBarInactiveTintColor: '#64748b', 
+        tabBarInactiveTintColor: '#64748b',
+        //platform.select wstrzykuje odpowiedni styl w zależności od systemu
         tabBarStyle: Platform.select({
           ios: { position: 'absolute' },
           default: {},
@@ -49,7 +53,7 @@ export default function TabLayout() {
           tabBarLabel: 'Zadania',
           tabBarIcon: ({ focused }) => (
             <Ionicons name="list-outline" size={28} color={focused ? "#0284c7" : '#64748b'} />
-          ), // <--- POPRAWKA 4: Usunięty komentarz ze środka JSX, który psuł parsowanie stringów
+          ),
         }}
       />
       <Tabs.Screen
@@ -76,10 +80,13 @@ export default function TabLayout() {
   );
 }
 
+//ErrorBoundry to granica błędu
+//Dzięki ErrorBoundry przechwycamy dowolny błąd w całej aplikacji, żeby nie doszło do crashów aplikacji
+//dostajemy zamiast wyłączenia apki ekran z komunikatem do ponownienia
 export function ErrorBoundary({ error, retry }: { error: Error; retry: () => Promise<void> }) {
   return (
     <View className="flex-1 justify-center items-center bg-slate-50 p-6">
-      <Text className="text-4xl mb-2">⚠️</Text>
+      <Text className="text-4xl mb-2">Uwaga</Text>
       <Text className="text-xl font-bold text-slate-800 text-center mb-2">
         Wystąpił nieoczekiwany błąd aplikacji
       </Text>

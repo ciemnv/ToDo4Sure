@@ -8,12 +8,12 @@ import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
-// const AVAILABLE_PROJECTS = ['Główne', 'Studia', 'Dom'];
 
 export default function TasksScreen() {
   const { projects } = useProjectStore();
-  // const [selectedProject, setSelectedProject] = useState('Wszystkie');
 
+
+  //lokalne stany do formularza, kalendarza i ladowania kamery czy modala
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [project, setProject] = useState(projects[0] || 'Główne');
@@ -32,10 +32,13 @@ export default function TasksScreen() {
     fetchTasks();
   }, []);
   
+
+  //ten efekt odpowiada za spójność danych między ustawieniami a ekranem glownym
+  //jesli usuniemy kategorie i przypiszemy nowa, wyswietli sie odpowiednia w TaskScreen
   useEffect(() => {
   // Sprawdzamy, czy aktualnie wybrany filtr to nie jest przypadek "Wszystkie"
   if (selectedFilter !== 'Wszystkie') {
-    // Jeśli wybrana nazwa projektu NIE znajduje się już w tablicy 3 aktualnych projektów,
+    // jesli wybrana nazwa projektu NIE znajduje się już w tablicy 3 aktualnych projektów,
     // oznacza to, że użytkownik właśnie ją zmienił w Ustawieniach.
     const projectExists = projects.includes(selectedFilter);
     
@@ -132,6 +135,8 @@ export default function TasksScreen() {
           onChangeText={setDescription}
         />
         <Text className="text-sm font-semibold text-slate-600 mb-2">Projekt / Kategoria:</Text>
+        
+        {/* dzieki projects.map react bedzie wiedzial, ktore kategorie ulegly zmianie i dynamicznie podmienia tylko je */}
         <View className="flex-row gap-2 mb-3">
           {projects.map((p) => {
             const isSelected = project === p;

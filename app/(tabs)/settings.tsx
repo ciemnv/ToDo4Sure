@@ -6,17 +6,18 @@ import { router } from 'expo-router';
 import { useProjectStore } from '@/src/store/project-store';
 
 export default function SettingsScreen() {
+
+  //integrujemy wszystkie magazyny stanów: obsługę tasków, autentyfikacji uzytkownika i obsluge kategorii
   const { tasks, fetchTasks, clearAllTasks } = useTaskStore();
   const { user, logout } = useAuthStore();
-
   const { projects, updateProjectName } = useProjectStore();
-  const [newProjectName, setNewProjectName] = useState('');
 
-  // Lokalne stany do obsługi pól tekstowych dla 3 slotów
+  // Lokalne stany do obsługi pól tekstowych dla 3 slotów Kategorii/Projektow
   const [proj0, setProj0] = useState(projects[0]);
   const [proj1, setProj1] = useState(projects[1]);
   const [proj2, setProj2] = useState(projects[2]);
 
+  //wyliczanie statystyk
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.isCompleted === 1).length;
   const activeTasks = totalTasks - completedTasks;

@@ -3,7 +3,7 @@ import { Text, View, FlatList, Pressable } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { useTaskStore } from '@/src/store/task-store';
 
-// Ustawiamy polską lokalizację dla kalendarza
+// Ustawiamy polską lokalizację dla kalendarza (bo domyslnie byl angielski)
 LocaleConfig.locales['pl'] = {
   monthNames: ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],
   monthNamesShort: ['Sty.','Luty','Mar.','Kwi.','Maj','Cze.','Lip.','Sie.','Wrz.','Paź.','Lis.','Gru.'],
@@ -13,6 +13,8 @@ LocaleConfig.locales['pl'] = {
 };
 LocaleConfig.defaultLocale = 'pl';
 
+//zapis [date: string] informuje nas, że obiekt może mieć dynamiczne klucze typu string
+//? to pole opcjonalne
 interface MarkedDates {
   [date: string]: {
     marked?: boolean;
@@ -23,21 +25,23 @@ interface MarkedDates {
 }
 
 export default function CalendarScreen() {
+  //wyciągamy tasks i fetchTasks ze sklepu Zustand do globalnego zarządzania taskami
   const { tasks, fetchTasks } = useTaskStore();
   
   // Stan przechowujący aktualnie kliknięty dzień (domyślnie dzisiejszy YYYY-MM-DD)
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Pobieramy najświeższe zadania z bazy przy każdym wejściu na ten ekran
-  useEffect(() => {
+  // Efekt uboczny: Pobieramy zadania z bazy przy każdym wejściu na ten ekran
+  //funkcja fetchTasks wykona się tylko raz podczas montowania komponentu
+   useEffect(() => {
     fetchTasks();
   }, []);
 
-  // Logika 1: Mapowanie zadań na kropki w kalendarzu
+  // 1: Mapowanie zadań na kropki w kalendarzu
   const getMarkedDates = (): MarkedDates => {
     const marked: MarkedDates = {};
 
-    // Najpierw zaznaczamy dni, w których są jakiekolwiek zadania
+    // najpierw zaznaczamy dni, w których są jakiekolwiek zadania
     tasks.forEach((task) => {
       if (task.dueDate) {
         marked[task.dueDate] = { 
@@ -47,7 +51,7 @@ export default function CalendarScreen() {
       }
     });
 
-    // Na koniec nakładamy niebieskie tło na aktualnie WYBRANY dzień
+    // niebieskie tło na aktualnie wybrany dzień
     marked[selectedDate] = {
       ...marked[selectedDate],
       selected: true,
@@ -57,7 +61,8 @@ export default function CalendarScreen() {
     return marked;
   };
 
-  // Logika 2: Filtrowanie zadań, które należą TYLKO do klikniętego dnia
+  // 2: Filtrowanie zadań, które należą TYLKO do klikniętego dnia
+  //filter zwraca nam tylko te, ktore pasuja do danego wyrazenia jako true
   const filteredTasks = tasks.filter((task) => task.dueDate === selectedDate);
 
   return (
@@ -90,7 +95,7 @@ export default function CalendarScreen() {
         </Text>
       </View>
 
-      {/* SEKCJA 3: Lista zadań pod kalendarzem */}
+      {/* SEKCJA 3: Lista zadań pod kalendarzem - uzywamy FlatList dla wiekszej wydajnosci - renderujemy tylko to, co jest obecnie na ekranie */}
       <FlatList
         data={filteredTasks}
         keyExtractor={(item) => item.id}
