@@ -38,4 +38,9 @@ export const initDatabase = async () => {
       userId TEXT NOT NULL
     );
   `);
+  try {
+    //naprawa bledu na iphone
+    await db.execAsync('ALTER TABLE tasks ADD COLUMN userId TEXT;');
+    console.log('Pomyślnie spatchowano starą bazę danych na iOS o kolumnę userId!');
+  } catch (e) {}
 };

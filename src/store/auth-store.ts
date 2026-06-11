@@ -1,7 +1,11 @@
+import * as Linking from 'expo-linking';
 import * as SecureStore from 'expo-secure-store';
+import * as WebBrowser from 'expo-web-browser';
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
 import { GUEST_USER, User, UserDto } from '../types/user';
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface AuthState {
   user: User | null;
@@ -113,22 +117,44 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
+
   loginWithProvider: async (dto: UserDto) => {
     if (!dto.provider) return;
     set({ isLoading: true, error: null });
+    
+    try {
+      const redirectUrl = Linking.createURL('', { scheme: 'todo4sure' });
 
-    // Protokół uwierzytelniania zewnętrznego OAuth (Google) za pomocą Supabase API
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: dto.provider,
-      options: {
-        redirectTo: 'todo4sure://', // Protokół Deep Linking Twojej aplikacji
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: dto.provider,
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // 1. Tworzymy nasłuchiwanie na moment, w którym telefon dostanie sygnał powrotny
+        const authSubscription = Linking.addEventListener('url', (event) => {
+          // Gdy system operacyjny wykryje powrót (todo4sure://), natychmiast zamykamy okno przeglądarki!
+          WebBrowser.dismissBrowser();
+          authSubscription.remove(); // Czyszczenie nasłuchiwania
+        });
+
+        // 2. Otwieramy przeglądarkę
+        await WebBrowser.openBrowserAsync(data.url);
       }
-    });
-
-    if (error) {
-      set({ error: error.message, isLoading: false });
+      
+      // KLUZOWE: Wyłączamy ładowanie OD RAZU po otwarciu/zamknięciu przeglądarki,
+      // dzięki czemu kółko nie będzie się kręcić w nieskończoność, jeśli okno utknie!
+      set({ isLoading: false });
+    } catch (e: any) {
+      set({ error: `Błąd OAuth: ${e.message}`, isLoading: false });
     }
   },
+
 
   loginAsGuest: async () => {
     await SecureStore.setItemAsync('guest_mode', 'true');

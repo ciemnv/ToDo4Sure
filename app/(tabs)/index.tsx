@@ -1,4 +1,5 @@
 import { EditTaskModal } from '@/components/editTaskModal';
+import { useProjectStore } from '@/src/store/project-store';
 import { useTaskStore } from '@/src/store/task-store';
 import { Task } from '@/src/types/task';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -7,16 +8,20 @@ import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
-const AVAILABLE_PROJECTS = ['Główne', 'Studia', 'Dom'];
+// const AVAILABLE_PROJECTS = ['Główne', 'Studia', 'Dom'];
 
 export default function TasksScreen() {
+  const { projects } = useProjectStore();
+  const [selectedProject, setSelectedProject] = useState('Wszystkie');
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [project, setProject] = useState('Główne');
+  const [project, setProject] = useState(projects[0] || 'Główne');
   const [selectedFilter, setSelectedFilter] = useState('Wszystkie');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isCameraLoading, setIsCameraLoading] = useState<string | null >(null); //przechowujemy id zadania ktore klikamy jako ukonczone
+
 
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [selectedTaskForEdit, setSelectedTaskForEdit] = useState<Task | null>(null);
@@ -26,6 +31,21 @@ export default function TasksScreen() {
   useEffect(() => {
     fetchTasks();
   }, []);
+  
+  useEffect(() => {
+  // Sprawdzamy, czy aktualnie wybrany filtr to nie jest przypadek "Wszystkie"
+  if (selectedProject !== 'Wszystkie') {
+    // Jeśli wybrana nazwa projektu NIE znajduje się już w tablicy 3 aktualnych projektów,
+    // oznacza to, że użytkownik właśnie ją zmienił w Ustawieniach.
+    const projectExists = projects.includes(selectedProject);
+    
+    if (!projectExists) {
+      // Automatycznie resetujemy filtr na 'Wszystkie' lub na pierwszy dostępny projekt, 
+      // dzięki czemu lista zadań nie zrobi się pusta!
+      setSelectedProject('Wszystkie');
+    }
+  }
+}, [projects]);
 
   const handleAddTask = async () => {
     if (!title.trim()) {
@@ -113,7 +133,7 @@ export default function TasksScreen() {
         />
         <Text className="text-sm font-semibold text-slate-600 mb-2">Projekt / Kategoria:</Text>
         <View className="flex-row gap-2 mb-3">
-          {AVAILABLE_PROJECTS.map((p) => {
+          {projects.map((p) => {
             const isSelected = project === p;
             return (
               <Pressable
@@ -150,7 +170,7 @@ export default function TasksScreen() {
       <View className="mb-4">
         <Text className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Filtruj według projektu:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
-          {['Wszystkie', ...AVAILABLE_PROJECTS].map((filter) => {
+          {['Wszystkie', ...projects].map((filter) => {
             const isSelected = selectedFilter === filter;
             return (
               <Pressable

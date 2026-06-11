@@ -5,6 +5,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { initDatabase } from '@/src/database/db';
 import { supabase } from '@/src/services/supabase';
 import * as Linking from 'expo-linking';
+import { useProjectStore } from '@/src/store/project-store';
 
 export default function RootLayout() {
   const { user, checkSession, isLoading } = useAuthStore();
@@ -38,6 +39,30 @@ export default function RootLayout() {
 
     setupApp();
   }, []);
+
+  useEffect(() => {
+  // Nasłuchiwanie na globalną zmianę stanu autentykacji w Supabase (e-mail, Google, Apple)
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (session && session.user) {
+      // Jeśli pojawiła się sesja z Google, natychmiast zapisujemy użytkownika w Zustandzie
+      useAuthStore.setState({
+        user: {
+          id: session.user.id,
+          email: session.user.email || '',
+          token: session.access_token,
+          isGuest: false
+        }
+      });
+    } else {
+      // Brak sesji -> czyszczenie stanu (np. po wylogowaniu)
+      useAuthStore.setState({ user: null });
+    }
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}, []);
 
   // Dopóki baza się tworzy LUB sklep sprawdza token, pokazujemy ekran ładowania
   if (!isDbReady || (isLoading && user === null)) {

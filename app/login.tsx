@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { useAuthStore } from '../src/store/auth-store';
 
@@ -7,7 +7,17 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { loginWithEmail, signUpWithEmail, loginWithProvider, loginAsGuest, isLoading, error } = useAuthStore();
+  const { user, loginWithEmail, signUpWithEmail, loginWithProvider, loginAsGuest, isLoading, error } = useAuthStore();
+
+  useEffect(() => {
+    // Jeśli w sklepie Zustand pojawi się zalogowany użytkownik, 
+    // natychmiast wyrzucamy go z ekranu logowania do wnętrza aplikacji!
+    if (user && !user.isGuest) {
+      console.log('Wykryto sesję Google! Przekierowanie do aplikacji...');
+      router.replace('/(tabs)');
+    }
+  }, [user]);
+
 
   const handleRegister = async () => {
   if (!email.trim() || !password.trim()) {
@@ -31,12 +41,18 @@ export default function LoginScreen() {
       } catch (e) {}
   };
 
-  const handleProviderLogin = async (providerName: 'google' | 'apple') => {
+const handleProviderLogin = async (providerName: 'google' | 'apple') => {
     try {
-      // przesyłamy obiekt UserDto dla logowania przez sociale
+      
       await loginWithProvider({ email: '', provider: providerName });
-      router.replace('/(tabs)');
-    } catch (e) {}
+      
+      const currentUser = useAuthStore.getState().user;
+      if (currentUser) {
+        router.replace('/(tabs)');
+      }
+    } catch (e) {
+      // Błędy wyświetlą się na czerwonym pasku automatycznie dzięki Zustandowi
+    }
   };
 
   const handleGuestLogin = async () => {
