@@ -3,6 +3,7 @@ import { Task } from '../types/task';
 import { User } from '../types/user';
 
 //Operacje CRUD dla bazy danych
+//Task repository ma pojedynczą odpowiedzialność: zajmuje się TYLKO komunikacją z bazą danych (surowe zapytania sql)
 export const TaskRepository = {
   async getAllTasks(currentUser: User): Promise<Task[]> {
     const db = await getDBConnection();

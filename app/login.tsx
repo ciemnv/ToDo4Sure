@@ -22,7 +22,7 @@ export default function LoginScreen() {
     // Jeśli w sklepie Zustand pojawi się zalogowany użytkownik, 
     // natychmiast wyrzucamy go z ekranu logowania do wnętrza aplikacji!
     if (user && !user.isGuest) {
-      console.log('Wykryto sesję Google! Przekierowanie do aplikacji...');
+      console.log('Wykryto sesję! Przekierowanie do aplikacji...');
       router.replace('/(tabs)');
     }
   }, [user]);

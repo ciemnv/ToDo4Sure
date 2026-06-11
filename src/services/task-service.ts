@@ -1,4 +1,3 @@
-// src/services/taskService.ts
 import NetInfo from '@react-native-community/netinfo';
 // import * as Notifications from "expo-notifications";
 import { TaskRepository } from '../database/task-repository';
@@ -7,6 +6,7 @@ import { User } from "../types/user";
 import { supabase } from "./supabase";
 
 
+//TaskService - warstwa logiki biznesowej: wywołuje metody z repository, decyduje o walidacji i koordynacji procesów
 export const TaskService = {
   // Pobieranie zadań z bazy danych
 

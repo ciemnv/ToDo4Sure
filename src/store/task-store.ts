@@ -1,13 +1,12 @@
 // src/store/taskStore.ts
 import { create } from 'zustand';
-import { TaskRepository } from '../database/task-repository';
 import { TaskService } from '../services/task-service';
 import { NewTaskPayload, Task } from '../types/task';
 import { useAuthStore } from './auth-store';
 
-
+//TaskStore - Zustandowa warstwa stanu globalnego, 
 //deklarujemy tutaj funkcje, z których TaskState może korzystać
-//TaskSate wie o istnieniu tylko serwisu
+//TaskSate wie o istnieniu tylko TaskService
 interface TaskState {
   tasks: Task[];
   isLoading: boolean;
@@ -30,8 +29,9 @@ export const useTaskStore = create<TaskState>((set) => ({
   error: null,
 
   fetchTasks: async () => {
+    //set automatycznie modyfikuje wybrane właściwości w sklepie
     set({ isLoading: true, error: null });
-    let currentUser = useAuthStore.getState().user;
+    let currentUser = useAuthStore.getState().user; //hooki można wywołać tylko wewnatrz komponentow funkcyjnych, wiec pobieramy stan uzytkownika za pomoca specjalnej metody
     
     if (!currentUser) {
       // Jeśli Zustand jeszcze nie wgrał profilu, próbujemy wymusić szybki odczyt sesji
@@ -74,7 +74,7 @@ export const useTaskStore = create<TaskState>((set) => ({
     try {
       await TaskService.completeTask(id, imageUri);
       set((state) => ({
-        tasks: state.tasks.map((t) => (t.id === id ? { ...t, isCompleted: 1, imageUri } : t)),
+        tasks: state.tasks.map((t) => (t.id === id ? { ...t, isCompleted: 1, imageUri } : t)),  //jesli sie zgadza tworzymy nowy obiekt, kopiujemy jego wlasciwosci i sciezke do zdjecia
         error: null,
       }));
     } catch (error) {

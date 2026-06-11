@@ -112,7 +112,7 @@ Aplikacja została stworzona pod kątem uruchomienia w środowisku ExpoGo.
    s
 5. **Uruchomienie na urządzeniu**
     Otwórz aplikację aparatu i zeskanuj kod QR z aplikacją ExpoGo
-5. **Alternatywne uruchomienie z AndroidStudio**
+6. **Alternatywne uruchomienie z AndroidStudio**
    ```bash
    a 
 
