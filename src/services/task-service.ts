@@ -1,6 +1,6 @@
 // src/services/taskService.ts
 import NetInfo from '@react-native-community/netinfo';
-import * as Notifications from "expo-notifications";
+// import * as Notifications from "expo-notifications";
 import { TaskRepository } from '../database/task-repository';
 import { NewTaskPayload, Task } from '../types/task';
 import { User } from "../types/user";
@@ -91,27 +91,27 @@ export const TaskService = {
 
 
     // Planowanie powiadomienia systemowego
-    try {
-      const alarmDate = new Date(`${taskData.dueDate}T09:00:00`);
-      const now = new Date();
-      const finalDate = alarmDate > now ? alarmDate : new Date(now.getTime() + 10000);
+    // try {
+    //   const alarmDate = new Date(`${taskData.dueDate}T09:00:00`);
+    //   const now = new Date();
+    //   const finalDate = alarmDate > now ? alarmDate : new Date(now.getTime() + 10000);
 
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: `Powiadomienie: ${taskData.title}`,
-          body: taskData.description ? taskData.description : 'Pamiętaj o Twoim zadaniu na dziś!',
-          sound: true,
-          data: { taskId: newId }
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: finalDate,
-        } as Notifications.DateTriggerInput
-      });
-      console.log('Zaplanowano powiadomienie.');
-    } catch (error) {
-      console.log('Powiadomienia wstrzymane');
-    }
+    //   await Notifications.scheduleNotificationAsync({
+    //     content: {
+    //       title: `Powiadomienie: ${taskData.title}`,
+    //       body: taskData.description ? taskData.description : 'Pamiętaj o Twoim zadaniu na dziś!',
+    //       sound: true,
+    //       data: { taskId: newId }
+    //     },
+    //     trigger: {
+    //       type: Notifications.SchedulableTriggerInputTypes.DATE,
+    //       date: finalDate,
+    //     } as Notifications.DateTriggerInput
+    //   });
+    //   console.log('Zaplanowano powiadomienie.');
+    // } catch (error) {
+    //   console.log('Powiadomienia wstrzymane');
+    // }
 
     return taskToCreate; // Zwracamy gotowy obiekt, żeby było wiadomo z czego ma skorzystać store
   },
